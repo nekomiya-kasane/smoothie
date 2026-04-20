@@ -1,0 +1,7 @@
+{
+  "name": "smoothie",
+  "type": "custom",
+  "version": "0.1.0",
+  "description": "Asset management — VFS, .lpak reader/writer, compression, MPHF (shared)",
+  "dependencies": ["lz4", "zstd"]
+}
