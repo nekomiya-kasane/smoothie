@@ -1,7 +1,6 @@
-#include <benchmark/benchmark.h>
-
 #include "smoothie/resource/compression.h"
 
+#include <benchmark/benchmark.h>
 #include <cstddef>
 #include <vector>
 
@@ -29,11 +28,11 @@ std::vector<std::byte> make_random_ish(size_t size) {
     return v;
 }
 
-}  // namespace
+} // namespace
 
 // ── LZ4 compress ────────────────────────────────────────────────────────
 
-static void BM_lz4_compress(benchmark::State& state) {
+static void BM_lz4_compress(benchmark::State &state) {
     auto data = make_compressible(static_cast<size_t>(state.range(0)));
     for (auto _ : state) {
         auto r = compress(data, compression_mode::lz4);
@@ -45,7 +44,7 @@ BENCHMARK(BM_lz4_compress)->Arg(1024)->Arg(4096)->Arg(65536)->Arg(1048576);
 
 // ── LZ4 decompress ─────────────────────────────────────────────────────
 
-static void BM_lz4_decompress(benchmark::State& state) {
+static void BM_lz4_decompress(benchmark::State &state) {
     auto data = make_compressible(static_cast<size_t>(state.range(0)));
     auto compressed = compress(data, compression_mode::lz4);
     auto flags = entry_flags::compressed | entry_flags::lz4;
@@ -60,7 +59,7 @@ BENCHMARK(BM_lz4_decompress)->Arg(1024)->Arg(4096)->Arg(65536)->Arg(1048576);
 
 // ── Zstd compress ───────────────────────────────────────────────────────
 
-static void BM_zstd_compress(benchmark::State& state) {
+static void BM_zstd_compress(benchmark::State &state) {
     auto data = make_compressible(static_cast<size_t>(state.range(0)));
     for (auto _ : state) {
         auto r = compress(data, compression_mode::zstd);
@@ -72,7 +71,7 @@ BENCHMARK(BM_zstd_compress)->Arg(1024)->Arg(4096)->Arg(65536)->Arg(1048576);
 
 // ── Zstd decompress ─────────────────────────────────────────────────────
 
-static void BM_zstd_decompress(benchmark::State& state) {
+static void BM_zstd_decompress(benchmark::State &state) {
     auto data = make_compressible(static_cast<size_t>(state.range(0)));
     auto compressed = compress(data, compression_mode::zstd);
     auto flags = entry_flags::compressed | entry_flags::zstd;
@@ -87,7 +86,7 @@ BENCHMARK(BM_zstd_decompress)->Arg(1024)->Arg(4096)->Arg(65536)->Arg(1048576);
 
 // ── LZ4 decompress_into (zero-allocation) ──────────────────────────────
 
-static void BM_lz4_decompress_into(benchmark::State& state) {
+static void BM_lz4_decompress_into(benchmark::State &state) {
     auto data = make_compressible(static_cast<size_t>(state.range(0)));
     auto compressed = compress(data, compression_mode::lz4);
     auto flags = entry_flags::compressed | entry_flags::lz4;
@@ -102,7 +101,7 @@ BENCHMARK(BM_lz4_decompress_into)->Arg(1024)->Arg(4096)->Arg(65536)->Arg(1048576
 
 // ── Zstd decompress_into (zero-allocation) ─────────────────────────────
 
-static void BM_zstd_decompress_into(benchmark::State& state) {
+static void BM_zstd_decompress_into(benchmark::State &state) {
     auto data = make_compressible(static_cast<size_t>(state.range(0)));
     auto compressed = compress(data, compression_mode::zstd);
     auto flags = entry_flags::compressed | entry_flags::zstd;
@@ -117,7 +116,7 @@ BENCHMARK(BM_zstd_decompress_into)->Arg(1024)->Arg(4096)->Arg(65536)->Arg(104857
 
 // ── LZ4 decompress_reuse (amortized zero-allocation) ───────────────────
 
-static void BM_lz4_decompress_reuse(benchmark::State& state) {
+static void BM_lz4_decompress_reuse(benchmark::State &state) {
     auto data = make_compressible(static_cast<size_t>(state.range(0)));
     auto compressed = compress(data, compression_mode::lz4);
     auto flags = entry_flags::compressed | entry_flags::lz4;
@@ -134,7 +133,7 @@ BENCHMARK(BM_lz4_decompress_reuse)->Arg(1024)->Arg(4096)->Arg(65536)->Arg(104857
 
 // ── Zstd decompress_reuse (amortized zero-allocation) ──────────────────
 
-static void BM_zstd_decompress_reuse(benchmark::State& state) {
+static void BM_zstd_decompress_reuse(benchmark::State &state) {
     auto data = make_compressible(static_cast<size_t>(state.range(0)));
     auto compressed = compress(data, compression_mode::zstd);
     auto flags = entry_flags::compressed | entry_flags::zstd;
@@ -151,7 +150,7 @@ BENCHMARK(BM_zstd_decompress_reuse)->Arg(1024)->Arg(4096)->Arg(65536)->Arg(10485
 
 // ── Random data (worst-case compression) ────────────────────────────────
 
-static void BM_lz4_compress_random(benchmark::State& state) {
+static void BM_lz4_compress_random(benchmark::State &state) {
     auto data = make_random_ish(static_cast<size_t>(state.range(0)));
     for (auto _ : state) {
         auto r = compress(data, compression_mode::lz4);
@@ -161,7 +160,7 @@ static void BM_lz4_compress_random(benchmark::State& state) {
 }
 BENCHMARK(BM_lz4_compress_random)->Arg(65536)->Arg(1048576);
 
-static void BM_zstd_compress_random(benchmark::State& state) {
+static void BM_zstd_compress_random(benchmark::State &state) {
     auto data = make_random_ish(static_cast<size_t>(state.range(0)));
     for (auto _ : state) {
         auto r = compress(data, compression_mode::zstd);
@@ -171,4 +170,4 @@ static void BM_zstd_compress_random(benchmark::State& state) {
 }
 BENCHMARK(BM_zstd_compress_random)->Arg(65536)->Arg(1048576);
 
-#endif  // SMOOTHIE_HAS_COMPRESSION
+#endif // SMOOTHIE_HAS_COMPRESSION

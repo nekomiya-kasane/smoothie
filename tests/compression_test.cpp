@@ -1,15 +1,14 @@
-#include <gtest/gtest.h>
+#include "smoothie/resource/compression.h"
+#include "smoothie/resource/lpak_format.h"
 
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <gtest/gtest.h>
 #include <numeric>
 #include <string>
 #include <vector>
-
-#include "smoothie/resource/compression.h"
-#include "smoothie/resource/lpak_format.h"
 
 using namespace smoothie::resource;
 
@@ -23,8 +22,7 @@ static auto to_bytes(std::string_view s) -> std::vector<std::byte> {
 // Helper: make a repeating byte pattern (compressible)
 static auto make_compressible(size_t size) -> std::vector<std::byte> {
     std::vector<std::byte> v(size);
-    for (size_t i = 0; i < size; ++i)
-        v[i] = static_cast<std::byte>(i % 64);
+    for (size_t i = 0; i < size; ++i) v[i] = static_cast<std::byte>(i % 64);
     return v;
 }
 
@@ -167,10 +165,8 @@ TEST(Compression, SmallData) {
 
 TEST(Compression, CompressionToFlags) {
     EXPECT_EQ(compression_to_flags(compression_mode::none), entry_flags::none);
-    EXPECT_EQ(compression_to_flags(compression_mode::lz4),
-              entry_flags::compressed | entry_flags::lz4);
-    EXPECT_EQ(compression_to_flags(compression_mode::zstd),
-              entry_flags::compressed | entry_flags::zstd);
+    EXPECT_EQ(compression_to_flags(compression_mode::lz4), entry_flags::compressed | entry_flags::lz4);
+    EXPECT_EQ(compression_to_flags(compression_mode::zstd), entry_flags::compressed | entry_flags::zstd);
 }
 
 TEST(Compression, IsCompressed) {

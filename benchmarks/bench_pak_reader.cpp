@@ -1,9 +1,8 @@
-#include <benchmark/benchmark.h>
-
 #include "smoothie/resource/hash.h"
-#include "smoothie/resource/pak_writer.h"
 #include "smoothie/resource/pak_reader.h"
+#include "smoothie/resource/pak_writer.h"
 
+#include <benchmark/benchmark.h>
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
@@ -24,17 +23,16 @@ auto bench_tmp_dir() -> fs::path {
 
 auto make_bytes(std::string_view s) -> std::vector<std::byte> {
     std::vector<std::byte> v(s.size());
-    for (size_t i = 0; i < s.size(); ++i)
-        v[i] = static_cast<std::byte>(s[i]);
+    for (size_t i = 0; i < s.size(); ++i) v[i] = static_cast<std::byte>(s[i]);
     return v;
 }
 
-auto read_file_bytes(const fs::path& p) -> std::vector<std::byte> {
+auto read_file_bytes(const fs::path &p) -> std::vector<std::byte> {
     std::ifstream f(p, std::ios::binary | std::ios::ate);
     auto sz = f.tellg();
     f.seekg(0);
     std::vector<std::byte> buf(static_cast<size_t>(sz));
-    f.read(reinterpret_cast<char*>(buf.data()), sz);
+    f.read(reinterpret_cast<char *>(buf.data()), sz);
     return buf;
 }
 
@@ -59,19 +57,19 @@ struct pak_fixture {
     }
 };
 
-auto& get_pak_fixture(int n) {
+auto &get_pak_fixture(int n) {
     static std::unique_ptr<pak_fixture> f100, f1k, f10k;
-    auto& ptr = (n <= 100) ? f100 : (n <= 1000) ? f1k : f10k;
+    auto &ptr = (n <= 100) ? f100 : (n <= 1000) ? f1k : f10k;
     if (!ptr) ptr = std::make_unique<pak_fixture>(n);
     return *ptr;
 }
 
-}  // namespace
+} // namespace
 
 // ── pak_reader::open (index construction) ────────────────────────────────
 
-static void BM_pak_reader_open(benchmark::State& state) {
-    auto& fix = get_pak_fixture(static_cast<int>(state.range(0)));
+static void BM_pak_reader_open(benchmark::State &state) {
+    auto &fix = get_pak_fixture(static_cast<int>(state.range(0)));
     for (auto _ : state) {
         auto rr = pak_reader::open(fix.file_bytes);
         benchmark::DoNotOptimize(rr);
@@ -83,8 +81,8 @@ BENCHMARK(BM_pak_reader_open)->Arg(100)->Arg(1000)->Arg(10000)->MinTime(0.1);
 
 // ── pak_reader::find (lookup) ────────────────────────────────────────────
 
-static void BM_pak_reader_find(benchmark::State& state) {
-    auto& fix = get_pak_fixture(static_cast<int>(state.range(0)));
+static void BM_pak_reader_find(benchmark::State &state) {
+    auto &fix = get_pak_fixture(static_cast<int>(state.range(0)));
     auto rr = pak_reader::open(fix.file_bytes);
     if (!rr) {
         state.SkipWithError("open failed");
@@ -102,8 +100,8 @@ BENCHMARK(BM_pak_reader_find)->Arg(100)->Arg(1000)->Arg(10000);
 
 // ── pak_reader::data_of ──────────────────────────────────────────────────
 
-static void BM_pak_reader_data_of(benchmark::State& state) {
-    auto& fix = get_pak_fixture(1000);
+static void BM_pak_reader_data_of(benchmark::State &state) {
+    auto &fix = get_pak_fixture(1000);
     auto rr = pak_reader::open(fix.file_bytes);
     if (!rr) {
         state.SkipWithError("open failed");

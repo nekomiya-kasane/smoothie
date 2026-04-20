@@ -22,17 +22,17 @@ namespace smoothie::resource {
 
 // ── MPHF constants ──────────────────────────────────────────────────
 
-inline constexpr uint32_t mphf_magic = 0x4D504846;  // "MPHF"
+inline constexpr uint32_t mphf_magic = 0x4D504846; // "MPHF"
 inline constexpr uint32_t mphf_empty_seed = UINT32_MAX;
 
 // ── MPHF table header (stored in .lpak) ─────────────────────────────
 
 #pragma pack(push, 1)
 struct mphf_header {
-    uint32_t magic;          // mphf_magic
-    uint32_t bucket_count;   // number of buckets (== entry_count for load factor 1.0)
-    uint32_t entry_count;    // number of entries
-    uint32_t reserved;       // padding
+    uint32_t magic;        // mphf_magic
+    uint32_t bucket_count; // number of buckets (== entry_count for load factor 1.0)
+    uint32_t entry_count;  // number of entries
+    uint32_t reserved;     // padding
     // Followed by bucket_count x uint32_t seeds
 };
 #pragma pack(pop)
@@ -57,10 +57,8 @@ static_assert(sizeof(mphf_header) == 16, "mphf_header must be 16 bytes");
 // ── MPHF lookup (O(1), used at runtime) ─────────────────────────────
 
 /// Look up a key in the MPHF table. Returns the index into the entry array.
-[[nodiscard]] inline auto mphf_lookup(
-    uint64_t key,
-    std::span<const uint32_t> seeds,
-    uint32_t entry_count) noexcept -> uint32_t {
+[[nodiscard]] inline auto mphf_lookup(uint64_t key, std::span<const uint32_t> seeds, uint32_t entry_count) noexcept
+    -> uint32_t {
 
     if (seeds.empty() || entry_count == 0) return UINT32_MAX;
 
@@ -94,9 +92,7 @@ static_assert(sizeof(mphf_header) == 16, "mphf_header must be 16 bytes");
     std::vector<uint32_t> bucket_order(bucket_count);
     for (uint32_t i = 0; i < bucket_count; ++i) bucket_order[i] = i;
     std::sort(bucket_order.begin(), bucket_order.end(),
-        [&](uint32_t a, uint32_t b) {
-            return buckets[a].key_indices.size() > buckets[b].key_indices.size();
-        });
+              [&](uint32_t a, uint32_t b) { return buckets[a].key_indices.size() > buckets[b].key_indices.size(); });
 
     std::vector<uint32_t> seeds(bucket_count, mphf_empty_seed);
     std::vector<bool> occupied(n, false);
@@ -106,7 +102,7 @@ static_assert(sizeof(mphf_header) == 16, "mphf_header must be 16 bytes");
     std::vector<bool> trial(n, false);
 
     for (auto bi : bucket_order) {
-        const auto& bkt = buckets[bi];
+        const auto &bkt = buckets[bi];
         if (bkt.key_indices.empty()) continue;
 
         if (bkt.key_indices.size() == 1) {
@@ -131,7 +127,10 @@ static_assert(sizeof(mphf_header) == 16, "mphf_header must be 16 bytes");
 
             for (auto ki : bkt.key_indices) {
                 auto slot = mphf_probe(keys[ki], seed, n);
-                if (occupied[slot] || trial[slot]) { collision = true; break; }
+                if (occupied[slot] || trial[slot]) {
+                    collision = true;
+                    break;
+                }
                 trial[slot] = true;
                 slots.push_back(slot);
             }
@@ -152,19 +151,19 @@ static_assert(sizeof(mphf_header) == 16, "mphf_header must be 16 bytes");
 }
 
 /// Serialize an MPHF table to bytes (header + seeds).
-[[nodiscard]] inline auto mphf_serialize(const std::vector<uint32_t>& seeds, uint32_t entry_count)
+[[nodiscard]] inline auto mphf_serialize(const std::vector<uint32_t> &seeds, uint32_t entry_count)
     -> std::vector<std::byte> {
 
     std::vector<std::byte> result;
     result.resize(sizeof(mphf_header) + seeds.size() * sizeof(uint32_t));
 
-    auto* hdr = reinterpret_cast<mphf_header*>(result.data());
+    auto *hdr = reinterpret_cast<mphf_header *>(result.data());
     hdr->magic = mphf_magic;
     hdr->bucket_count = static_cast<uint32_t>(seeds.size());
     hdr->entry_count = entry_count;
     hdr->reserved = 0;
 
-    auto* dst = reinterpret_cast<uint32_t*>(result.data() + sizeof(mphf_header));
+    auto *dst = reinterpret_cast<uint32_t *>(result.data() + sizeof(mphf_header));
     for (size_t i = 0; i < seeds.size(); ++i) {
         dst[i] = seeds[i];
     }
@@ -173,20 +172,18 @@ static_assert(sizeof(mphf_header) == 16, "mphf_header must be 16 bytes");
 }
 
 /// Deserialize MPHF seeds from a raw byte span (validates header).
-[[nodiscard]] inline auto mphf_deserialize(std::span<const std::byte> data)
-    -> std::span<const uint32_t> {
+[[nodiscard]] inline auto mphf_deserialize(std::span<const std::byte> data) -> std::span<const uint32_t> {
 
     if (data.size() < sizeof(mphf_header)) return {};
 
-    const auto* hdr = reinterpret_cast<const mphf_header*>(data.data());
+    const auto *hdr = reinterpret_cast<const mphf_header *>(data.data());
     if (hdr->magic != mphf_magic) return {};
 
     const size_t expected = sizeof(mphf_header) + hdr->bucket_count * sizeof(uint32_t);
     if (data.size() < expected) return {};
 
-    return std::span<const uint32_t>(
-        reinterpret_cast<const uint32_t*>(data.data() + sizeof(mphf_header)),
-        hdr->bucket_count);
+    return std::span<const uint32_t>(reinterpret_cast<const uint32_t *>(data.data() + sizeof(mphf_header)),
+                                     hdr->bucket_count);
 }
 
-}  // namespace smoothie::resource
+} // namespace smoothie::resource

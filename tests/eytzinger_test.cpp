@@ -1,11 +1,10 @@
-#include <gtest/gtest.h>
+#include "smoothie/detail/eytzinger_array.h"
 
 #include <algorithm>
 #include <cstdint>
+#include <gtest/gtest.h>
 #include <numeric>
 #include <vector>
-
-#include "smoothie/detail/eytzinger_array.h"
 
 using smoothie::detail::eytzinger_array;
 
@@ -13,7 +12,7 @@ TEST(EytzingerArray, EmptyArray) {
     eytzinger_array<uint64_t> ea;
     EXPECT_EQ(ea.size(), 0u);
     EXPECT_TRUE(ea.empty());
-    EXPECT_EQ(ea.find(42), 0u);  // not-found sentinel == size()
+    EXPECT_EQ(ea.find(42), 0u); // not-found sentinel == size()
 }
 
 TEST(EytzingerArray, SingleElement) {
@@ -23,9 +22,9 @@ TEST(EytzingerArray, SingleElement) {
 
     EXPECT_EQ(ea.size(), 1u);
     EXPECT_FALSE(ea.empty());
-    EXPECT_EQ(ea.find(100), 0u);   // found at sorted index 0
-    EXPECT_EQ(ea.find(99), 1u);    // not found
-    EXPECT_EQ(ea.find(101), 1u);   // not found
+    EXPECT_EQ(ea.find(100), 0u); // found at sorted index 0
+    EXPECT_EQ(ea.find(99), 1u);  // not found
+    EXPECT_EQ(ea.find(101), 1u); // not found
 }
 
 TEST(EytzingerArray, SmallSorted) {
@@ -49,7 +48,7 @@ TEST(EytzingerArray, PowerOfTwoMinusOne) {
     // 2^N - 1 elements = perfect binary tree
     eytzinger_array<uint64_t> ea;
     std::vector<uint64_t> sorted(7);
-    std::iota(sorted.begin(), sorted.end(), 1);  // [1..7]
+    std::iota(sorted.begin(), sorted.end(), 1); // [1..7]
     ea.build(sorted);
 
     for (size_t i = 0; i < sorted.size(); ++i) {
@@ -100,8 +99,7 @@ TEST(EytzingerArray, SortedIndicesConsistency) {
 
     // Verify: for each Eytzinger position i, data[i] == sorted[indices[i]]
     for (size_t i = 0; i < data.size(); ++i) {
-        EXPECT_EQ(data[i], sorted[indices[i]])
-            << "Eytzinger pos " << i;
+        EXPECT_EQ(data[i], sorted[indices[i]]) << "Eytzinger pos " << i;
     }
 }
 
@@ -155,6 +153,6 @@ TEST(EytzingerArray, RebuildOverwrite) {
     std::vector<uint64_t> second = {10, 20, 30, 40};
     ea.build(second);
     EXPECT_EQ(ea.size(), 4u);
-    EXPECT_EQ(ea.find(2), ea.size());  // old key gone
+    EXPECT_EQ(ea.find(2), ea.size()); // old key gone
     EXPECT_EQ(ea.find(30), 2u);
 }

@@ -1,0 +1,1 @@
+filter=+convention/filename,+linelength,+package/consistency,+readability/logic,+readability/wonkycase,+syntax,+whitespace/eol,+whitespace/extra,-whitespace/indent,+whitespace/mismatch,+whitespace/newline,+whitespace/tabs

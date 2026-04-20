@@ -3,6 +3,10 @@
 /// @file compression.h
 /// @brief Block compression/decompression for .lpak entries (LZ4, Zstd).
 
+#include "smoothie/exports.h"
+#include "smoothie/resource/lpak_format.h"
+#include "smoothie/types.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -10,57 +14,45 @@
 #include <span>
 #include <vector>
 
-#include "smoothie/exports.h"
-#include "smoothie/types.h"
-#include "smoothie/resource/lpak_format.h"
-
 namespace smoothie::resource {
 
 /// Compression codec selection.
 enum class compression_mode : uint8_t {
     none = 0,
-    lz4  = 1,
+    lz4 = 1,
     zstd = 2,
 };
 
 /// @brief Compress a block of data using the specified codec.
-[[nodiscard]] SMOOTHIE_API auto compress(
-    std::span<const std::byte> input,
-    compression_mode mode
-) -> diagnostic_result<std::vector<std::byte>>;
+[[nodiscard]] SMOOTHIE_API auto compress(std::span<const std::byte> input, compression_mode mode)
+    -> diagnostic_result<std::vector<std::byte>>;
 
 /// @brief Decompress a block of data using the codec indicated by entry flags.
-[[nodiscard]] SMOOTHIE_API auto decompress(
-    std::span<const std::byte> compressed,
-    uint32_t uncompressed_size,
-    entry_flags flags
-) -> diagnostic_result<std::vector<std::byte>>;
+[[nodiscard]] SMOOTHIE_API auto decompress(std::span<const std::byte> compressed, uint32_t uncompressed_size,
+                                           entry_flags flags) -> diagnostic_result<std::vector<std::byte>>;
 
 /// @brief Decompress into a pre-allocated output buffer (zero-allocation hot path).
 /// @param output  must be at least uncompressed_size bytes.
 /// @return number of bytes written, or error.
-[[nodiscard]] SMOOTHIE_API auto decompress_into(
-    std::span<const std::byte> compressed,
-    std::span<std::byte> output,
-    entry_flags flags
-) -> diagnostic_result<size_t>;
+[[nodiscard]] SMOOTHIE_API auto decompress_into(std::span<const std::byte> compressed, std::span<std::byte> output,
+                                                entry_flags flags) -> diagnostic_result<size_t>;
 
 /// @brief Decompress into a reusable vector (amortized-zero-allocation hot path).
 /// The vector is resized to uncompressed_size; if its capacity already suffices,
 /// no heap allocation occurs.
-[[nodiscard]] SMOOTHIE_API auto decompress_reuse(
-    std::span<const std::byte> compressed,
-    uint32_t uncompressed_size,
-    entry_flags flags,
-    std::vector<std::byte>& output
-) -> diagnostic_result<void>;
+[[nodiscard]] SMOOTHIE_API auto decompress_reuse(std::span<const std::byte> compressed, uint32_t uncompressed_size,
+                                                 entry_flags flags, std::vector<std::byte> &output)
+    -> diagnostic_result<void>;
 
 /// @brief Map compression_mode to the corresponding entry_flags bits.
 [[nodiscard]] constexpr auto compression_to_flags(compression_mode mode) noexcept -> entry_flags {
     switch (mode) {
-    case compression_mode::lz4:  return entry_flags::compressed | entry_flags::lz4;
-    case compression_mode::zstd: return entry_flags::compressed | entry_flags::zstd;
-    default:                     return entry_flags::none;
+    case compression_mode::lz4:
+        return entry_flags::compressed | entry_flags::lz4;
+    case compression_mode::zstd:
+        return entry_flags::compressed | entry_flags::zstd;
+    default:
+        return entry_flags::none;
     }
 }
 
@@ -75,7 +67,7 @@ enum class compression_mode : uint8_t {
 /// @param data  pointer to decompressed bytes
 /// @param size  number of bytes in this chunk
 /// Return false to abort the stream early.
-using decompress_chunk_callback = std::function<bool(const std::byte* data, size_t size)>;
+using decompress_chunk_callback = std::function<bool(const std::byte *data, size_t size)>;
 
 /// @brief Streaming decompressor for processing large resources in chunks.
 ///
@@ -90,21 +82,19 @@ using decompress_chunk_callback = std::function<bool(const std::byte* data, size
 ///   });
 /// @endcode
 class SMOOTHIE_API decompression_stream {
-public:
+  public:
     /// @brief Create a streaming decompressor.
     /// @param flags            entry_flags indicating the codec (lz4 or zstd)
     /// @param uncompressed_size total expected uncompressed size (0 = unknown, Zstd only)
     /// @param chunk_size       output buffer size per callback invocation (default 64 KB)
-    explicit decompression_stream(entry_flags flags,
-                                  uint32_t uncompressed_size = 0,
-                                  size_t chunk_size = 65536);
+    explicit decompression_stream(entry_flags flags, uint32_t uncompressed_size = 0, size_t chunk_size = 65536);
 
     ~decompression_stream();
 
-    decompression_stream(const decompression_stream&) = delete;
-    decompression_stream& operator=(const decompression_stream&) = delete;
-    decompression_stream(decompression_stream&&) noexcept;
-    decompression_stream& operator=(decompression_stream&&) noexcept;
+    decompression_stream(const decompression_stream &) = delete;
+    decompression_stream &operator=(const decompression_stream &) = delete;
+    decompression_stream(decompression_stream &&) noexcept;
+    decompression_stream &operator=(decompression_stream &&) noexcept;
 
     /// @brief Feed compressed data into the stream.
     /// Decompressed output is buffered internally.
@@ -117,9 +107,9 @@ public:
     /// @brief Total bytes decompressed so far.
     [[nodiscard]] auto bytes_produced() const noexcept -> uint64_t;
 
-private:
+  private:
     struct impl;
     std::unique_ptr<impl> impl_;
 };
 
-}  // namespace smoothie::resource
+} // namespace smoothie::resource

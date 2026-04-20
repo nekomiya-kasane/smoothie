@@ -3,10 +3,10 @@
 /// @file stats.h
 /// @brief VFS performance counters for smoothie.
 
+#include "smoothie/exports.h"
+
 #include <atomic>
 #include <cstdint>
-
-#include "smoothie/exports.h"
 
 namespace smoothie {
 
@@ -23,9 +23,9 @@ namespace smoothie {
 // ── VFS performance counters ────────────────────────────────────────
 
 struct vfs_stats {
-    uint64_t get_count   = 0;
-    uint64_t hit_count   = 0;
-    uint64_t miss_count  = 0;
+    uint64_t get_count = 0;
+    uint64_t hit_count = 0;
+    uint64_t miss_count = 0;
     uint64_t mount_count = 0;
     uint64_t total_bytes = 0;
 };
@@ -42,9 +42,9 @@ struct atomic_vfs_counters {
 
     [[nodiscard]] auto snapshot() const noexcept -> vfs_stats {
         return {
-            .get_count   = get_count.load(std::memory_order_relaxed),
-            .hit_count   = hit_count.load(std::memory_order_relaxed),
-            .miss_count  = miss_count.load(std::memory_order_relaxed),
+            .get_count = get_count.load(std::memory_order_relaxed),
+            .hit_count = hit_count.load(std::memory_order_relaxed),
+            .miss_count = miss_count.load(std::memory_order_relaxed),
             .mount_count = mount_count.load(std::memory_order_relaxed),
             .total_bytes = total_bytes.load(std::memory_order_relaxed),
         };
@@ -60,4 +60,4 @@ struct atomic_vfs_counters {
 };
 #endif
 
-}  // namespace smoothie
+} // namespace smoothie

@@ -1,8 +1,9 @@
 #include "smoothie/resource/vfs.h"
-#include "smoothie/resource/hash.h"
-#include "smoothie/resource/compression.h"
-#include "smoothie/detail/eytzinger_array.h"
+
 #include "detail/snapshot_holder.h"
+#include "smoothie/detail/eytzinger_array.h"
+#include "smoothie/resource/compression.h"
+#include "smoothie/resource/hash.h"
 
 #include <algorithm>
 #include <format>
@@ -26,25 +27,27 @@ namespace smoothie::resource {
 // ── mmap_file: RAII memory-mapped file ──────────────────────────────────
 
 struct mmap_file {
-    const std::byte* data = nullptr;
+    const std::byte *data = nullptr;
     size_t size = 0;
 
 #if defined(_WIN32)
-    void* file_handle = INVALID_HANDLE_VALUE;
-    void* mapping_handle = nullptr;
+    void *file_handle = INVALID_HANDLE_VALUE;
+    void *mapping_handle = nullptr;
 #else
     int fd = -1;
 #endif
 
     mmap_file() = default;
-    mmap_file(const mmap_file&) = delete;
-    mmap_file& operator=(const mmap_file&) = delete;
-    mmap_file(mmap_file&& o) noexcept
+    mmap_file(const mmap_file &) = delete;
+    mmap_file &operator=(const mmap_file &) = delete;
+    mmap_file(mmap_file &&o) noexcept
         : data(o.data), size(o.size)
 #if defined(_WIN32)
-        , file_handle(o.file_handle), mapping_handle(o.mapping_handle)
+          ,
+          file_handle(o.file_handle), mapping_handle(o.mapping_handle)
 #else
-        , fd(o.fd)
+          ,
+          fd(o.fd)
 #endif
     {
         o.data = nullptr;
@@ -56,35 +59,38 @@ struct mmap_file {
         o.fd = -1;
 #endif
     }
-    mmap_file& operator=(mmap_file&& o) noexcept {
+    mmap_file &operator=(mmap_file &&o) noexcept {
         if (this != &o) {
             close();
-            data = o.data; size = o.size;
+            data = o.data;
+            size = o.size;
 #if defined(_WIN32)
-            file_handle = o.file_handle; mapping_handle = o.mapping_handle;
-            o.file_handle = INVALID_HANDLE_VALUE; o.mapping_handle = nullptr;
+            file_handle = o.file_handle;
+            mapping_handle = o.mapping_handle;
+            o.file_handle = INVALID_HANDLE_VALUE;
+            o.mapping_handle = nullptr;
 #else
-            fd = o.fd; o.fd = -1;
+            fd = o.fd;
+            o.fd = -1;
 #endif
-            o.data = nullptr; o.size = 0;
+            o.data = nullptr;
+            o.size = 0;
         }
         return *this;
     }
     ~mmap_file() { close(); }
 
     [[nodiscard]] auto is_open() const noexcept -> bool { return data != nullptr; }
-    [[nodiscard]] auto span() const noexcept -> std::span<const std::byte> {
-        return {data, size};
-    }
+    [[nodiscard]] auto span() const noexcept -> std::span<const std::byte> { return {data, size}; }
 
-    static auto open(const std::filesystem::path& path) -> std::expected<mmap_file, error> {
+    static auto open(const std::filesystem::path &path) -> std::expected<mmap_file, error> {
         mmap_file m;
 #if defined(_WIN32)
-        m.file_handle = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ,
-            nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+        m.file_handle = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
+                                    FILE_ATTRIBUTE_NORMAL, nullptr);
         if (m.file_handle == INVALID_HANDLE_VALUE) {
-            return std::unexpected(error{error_code::io_error,
-                std::format("mmap: failed to open '{}'", path.string())});
+            return std::unexpected(
+                error{error_code::io_error, std::format("mmap: failed to open '{}'", path.string())});
         }
         LARGE_INTEGER file_size;
         if (!GetFileSizeEx(m.file_handle, &file_size)) {
@@ -104,43 +110,62 @@ struct mmap_file {
             m.file_handle = INVALID_HANDLE_VALUE;
             return std::unexpected(error{error_code::mmap_failed, "mmap: CreateFileMapping failed"});
         }
-        auto* ptr = MapViewOfFile(m.mapping_handle, FILE_MAP_READ, 0, 0, 0);
+        auto *ptr = MapViewOfFile(m.mapping_handle, FILE_MAP_READ, 0, 0, 0);
         if (!ptr) {
-            CloseHandle(m.mapping_handle); m.mapping_handle = nullptr;
-            CloseHandle(m.file_handle); m.file_handle = INVALID_HANDLE_VALUE;
+            CloseHandle(m.mapping_handle);
+            m.mapping_handle = nullptr;
+            CloseHandle(m.file_handle);
+            m.file_handle = INVALID_HANDLE_VALUE;
             return std::unexpected(error{error_code::mmap_failed, "mmap: MapViewOfFile failed"});
         }
-        m.data = static_cast<const std::byte*>(ptr);
+        m.data = static_cast<const std::byte *>(ptr);
 #else
         m.fd = ::open(path.c_str(), O_RDONLY);
         if (m.fd < 0) {
-            return std::unexpected(error{error_code::io_error,
-                std::format("mmap: failed to open '{}'", path.string())});
+            return std::unexpected(
+                error{error_code::io_error, std::format("mmap: failed to open '{}'", path.string())});
         }
         struct stat st;
         if (fstat(m.fd, &st) != 0 || st.st_size == 0) {
-            ::close(m.fd); m.fd = -1;
+            ::close(m.fd);
+            m.fd = -1;
             return std::unexpected(error{error_code::io_error, "mmap: fstat failed or empty"});
         }
         m.size = static_cast<size_t>(st.st_size);
-        auto* ptr = ::mmap(nullptr, m.size, PROT_READ, MAP_PRIVATE, m.fd, 0);
+        auto *ptr = ::mmap(nullptr, m.size, PROT_READ, MAP_PRIVATE, m.fd, 0);
         if (ptr == MAP_FAILED) {
-            ::close(m.fd); m.fd = -1;
+            ::close(m.fd);
+            m.fd = -1;
             return std::unexpected(error{error_code::mmap_failed, "mmap: mmap failed"});
         }
-        m.data = static_cast<const std::byte*>(ptr);
+        m.data = static_cast<const std::byte *>(ptr);
 #endif
         return m;
     }
 
     void close() noexcept {
 #if defined(_WIN32)
-        if (data) { UnmapViewOfFile(data); data = nullptr; }
-        if (mapping_handle) { CloseHandle(mapping_handle); mapping_handle = nullptr; }
-        if (file_handle != INVALID_HANDLE_VALUE) { CloseHandle(file_handle); file_handle = INVALID_HANDLE_VALUE; }
+        if (data) {
+            UnmapViewOfFile(data);
+            data = nullptr;
+        }
+        if (mapping_handle) {
+            CloseHandle(mapping_handle);
+            mapping_handle = nullptr;
+        }
+        if (file_handle != INVALID_HANDLE_VALUE) {
+            CloseHandle(file_handle);
+            file_handle = INVALID_HANDLE_VALUE;
+        }
 #else
-        if (data) { ::munmap(const_cast<std::byte*>(data), size); data = nullptr; }
-        if (fd >= 0) { ::close(fd); fd = -1; }
+        if (data) {
+            ::munmap(const_cast<std::byte *>(data), size);
+            data = nullptr;
+        }
+        if (fd >= 0) {
+            ::close(fd);
+            fd = -1;
+        }
 #endif
         size = 0;
     }
@@ -158,10 +183,10 @@ struct mount_point {
 };
 
 struct resolved_entry {
-    const std::byte* data_base_ptr;  // precomputed: mount_data(mp).data() + header->data_offset
+    const std::byte *data_base_ptr; // precomputed: mount_data(mp).data() + header->data_offset
     uint32_t data_offset;
     uint32_t data_size;
-    uint32_t buf_total_size;          // mount_data(mp).size() for bounds check
+    uint32_t buf_total_size; // mount_data(mp).size() for bounds check
     uint32_t reserved;
     uint16_t pack_idx;
     uint16_t flags;
@@ -169,7 +194,7 @@ struct resolved_entry {
     uint16_t _pad;
 };
 
-static auto mount_data(const mount_point& mp) noexcept -> std::span<const std::byte> {
+static auto mount_data(const mount_point &mp) noexcept -> std::span<const std::byte> {
     if (mp.is_mmap) return mp.mmap_data->span();
     if (mp.is_embedded) return mp.embedded_data;
     return std::span<const std::byte>(mp.owned_data);
@@ -188,8 +213,7 @@ struct vfs::vfs_snapshot {
         for (uint16_t i = 0; i < static_cast<uint16_t>(mounts.size()); ++i) {
             name_index.emplace_back(mounts[i]->name, i);
         }
-        std::sort(name_index.begin(), name_index.end(),
-            [](const auto& a, const auto& b) { return a.first < b.first; });
+        std::sort(name_index.begin(), name_index.end(), [](const auto &a, const auto &b) { return a.first < b.first; });
 
         struct candidate {
             uint64_t hash;
@@ -199,38 +223,39 @@ struct vfs::vfs_snapshot {
         std::vector<candidate> all;
 
         for (uint16_t i = 0; i < static_cast<uint16_t>(mounts.size()); ++i) {
-            const auto& mp = *mounts[i];
+            const auto &mp = *mounts[i];
             const auto buf = mount_data(mp);
             const auto data_off = mp.reader.header()->data_offset;
-            const auto* base = buf.data() + data_off;
+            const auto *base = buf.data() + data_off;
             const auto buf_sz = static_cast<uint32_t>(buf.size());
-            for (const auto& ed : mp.reader.entries()) {
+            for (const auto &ed : mp.reader.entries()) {
                 all.push_back({
                     .hash = ed.semantic_hash,
                     .priority = mp.priority,
-                    .entry = {
-                        .data_base_ptr = base,
-                        .data_offset = ed.data_offset,
-                        .data_size = ed.data_size,
-                        .buf_total_size = buf_sz,
-                        .reserved = ed.reserved,
-                        .pack_idx = i,
-                        .flags = ed.flags,
-                        .type = ed.type,
-                        ._pad = 0,
-                    },
+                    .entry =
+                        {
+                            .data_base_ptr = base,
+                            .data_offset = ed.data_offset,
+                            .data_size = ed.data_size,
+                            .buf_total_size = buf_sz,
+                            .reserved = ed.reserved,
+                            .pack_idx = i,
+                            .flags = ed.flags,
+                            .type = ed.type,
+                            ._pad = 0,
+                        },
                 });
             }
         }
 
-        std::sort(all.begin(), all.end(), [](const candidate& a, const candidate& b) {
+        std::sort(all.begin(), all.end(), [](const candidate &a, const candidate &b) {
             if (a.hash != b.hash) return a.hash < b.hash;
             return a.priority > b.priority;
         });
 
         std::vector<uint64_t> sorted_hashes;
         index_entries.clear();
-        for (const auto& c : all) {
+        for (const auto &c : all) {
             if (sorted_hashes.empty() || sorted_hashes.back() != c.hash) {
                 sorted_hashes.push_back(c.hash);
                 index_entries.push_back(c.entry);
@@ -251,47 +276,40 @@ struct vfs::impl {
     smoothie::atomic_vfs_counters counters;
 #endif
 
-    impl() {
-        snapshot.store(std::make_shared<const vfs_snapshot>());
-    }
+    impl() { snapshot.store(std::make_shared<const vfs_snapshot>()); }
 };
 
 // ── vfs ─────────────────────────────────────────────────────────────────
 
 vfs::vfs() : impl_(std::make_unique<impl>()) {}
 vfs::~vfs() = default;
-vfs::vfs(vfs&&) noexcept = default;
-vfs& vfs::operator=(vfs&&) noexcept = default;
+vfs::vfs(vfs &&) noexcept = default;
+vfs &vfs::operator=(vfs &&) noexcept = default;
 
-auto vfs::mount(std::string_view name, const std::filesystem::path& path, int priority)
-    -> diagnostic_result<void> {
+auto vfs::mount(std::string_view name, const std::filesystem::path &path, int priority) -> diagnostic_result<void> {
     std::ifstream in(path, std::ios::binary | std::ios::ate);
     if (!in) {
-        return std::unexpected(error{error_code::io_error,
-            std::format("failed to open '{}'", path.string())});
+        return std::unexpected(error{error_code::io_error, std::format("failed to open '{}'", path.string())});
     }
     auto size = in.tellg();
     in.seekg(0);
     std::vector<std::byte> file_data(static_cast<size_t>(size));
-    in.read(reinterpret_cast<char*>(file_data.data()), size);
+    in.read(reinterpret_cast<char *>(file_data.data()), size);
     if (!in) {
-        return std::unexpected(error{error_code::io_error,
-            std::format("failed to read '{}'", path.string())});
+        return std::unexpected(error{error_code::io_error, std::format("failed to read '{}'", path.string())});
     }
 
     return mount(name, std::move(file_data), priority);
 }
 
-auto vfs::mount(std::string_view name, std::vector<std::byte> data, int priority)
-    -> diagnostic_result<void> {
+auto vfs::mount(std::string_view name, std::vector<std::byte> data, int priority) -> diagnostic_result<void> {
     std::lock_guard lock(impl_->write_mutex);
 
     auto old = impl_->snapshot.load();
 
-    for (const auto& m : old->mounts) {
+    for (const auto &m : old->mounts) {
         if (m->name == name) {
-            return std::unexpected(error{error_code::already_mounted,
-                std::format("mount '{}' already exists", name)});
+            return std::unexpected(error{error_code::already_mounted, std::format("mount '{}' already exists", name)});
         }
     }
 
@@ -323,10 +341,9 @@ auto vfs::mount_embedded(std::string_view name, std::span<const std::byte> data,
 
     auto old = impl_->snapshot.load();
 
-    for (const auto& m : old->mounts) {
+    for (const auto &m : old->mounts) {
         if (m->name == name) {
-            return std::unexpected(error{error_code::already_mounted,
-                std::format("mount '{}' already exists", name)});
+            return std::unexpected(error{error_code::already_mounted, std::format("mount '{}' already exists", name)});
         }
     }
 
@@ -352,7 +369,7 @@ auto vfs::mount_embedded(std::string_view name, std::span<const std::byte> data,
     return {};
 }
 
-auto vfs::mount_mmap(std::string_view name, const std::filesystem::path& path, int priority)
+auto vfs::mount_mmap(std::string_view name, const std::filesystem::path &path, int priority)
     -> diagnostic_result<void> {
     auto mmap_result = mmap_file::open(path);
     if (!mmap_result) {
@@ -371,10 +388,9 @@ auto vfs::mount_mmap(std::string_view name, const std::filesystem::path& path, i
 
     auto old = impl_->snapshot.load();
 
-    for (const auto& m : old->mounts) {
+    for (const auto &m : old->mounts) {
         if (m->name == name) {
-            return std::unexpected(error{error_code::already_mounted,
-                std::format("mount '{}' already exists", name)});
+            return std::unexpected(error{error_code::already_mounted, std::format("mount '{}' already exists", name)});
         }
     }
 
@@ -402,7 +418,7 @@ auto vfs::unmount(std::string_view name) -> diagnostic_result<void> {
 
     bool found = false;
     auto next = std::make_shared<vfs_snapshot>();
-    for (const auto& m : old->mounts) {
+    for (const auto &m : old->mounts) {
         if (m->name == name && !found) {
             found = true;
             continue;
@@ -411,8 +427,7 @@ auto vfs::unmount(std::string_view name) -> diagnostic_result<void> {
     }
 
     if (!found) {
-        return std::unexpected(error{error_code::not_mounted,
-            std::format("mount '{}' not found", name)});
+        return std::unexpected(error{error_code::not_mounted, std::format("mount '{}' not found", name)});
     }
 
     next->rebuild();
@@ -440,7 +455,7 @@ auto vfs::get(uint64_t semantic_hash) const -> result<std::span<const std::byte>
     }
     SMOOTHIE_STAT_INC(impl_->counters.hit_count);
 
-    const auto& re = snap->index_entries[idx];
+    const auto &re = snap->index_entries[idx];
     const size_t abs_end = static_cast<size_t>(re.data_offset) + re.data_size;
 
     if (!re.data_base_ptr || abs_end > re.buf_total_size) [[unlikely]] {
@@ -450,18 +465,15 @@ auto vfs::get(uint64_t semantic_hash) const -> result<std::span<const std::byte>
     return std::span<const std::byte>(re.data_base_ptr + re.data_offset, re.data_size);
 }
 
-auto vfs::get_localized(uint64_t base_hash,
-                         std::string_view uri,
-                         std::string_view current_locale,
-                         std::span<const std::string> fallback_chain) const
-    -> result<std::span<const std::byte>> {
+auto vfs::get_localized(uint64_t base_hash, std::string_view uri, std::string_view current_locale,
+                        std::span<const std::string> fallback_chain) const -> result<std::span<const std::byte>> {
     if (!current_locale.empty()) {
         auto localized_hash = hash64_ns(current_locale, uri);
         auto r = get(localized_hash);
         if (r.has_value()) return r;
     }
 
-    for (const auto& locale : fallback_chain) {
+    for (const auto &locale : fallback_chain) {
         auto localized_hash = hash64_ns(locale, uri);
         auto r = get(localized_hash);
         if (r.has_value()) return r;
@@ -480,7 +492,7 @@ auto vfs::get_dynamic(std::string_view uri) const -> result<resource_view> {
         auto size = in.tellg();
         in.seekg(0);
         std::vector<std::byte> buf(static_cast<size_t>(size));
-        in.read(reinterpret_cast<char*>(buf.data()), size);
+        in.read(reinterpret_cast<char *>(buf.data()), size);
         if (!in) {
             return std::unexpected(error_code::io_error);
         }
@@ -496,13 +508,13 @@ auto vfs::get_dynamic(std::string_view uri) const -> result<resource_view> {
             auto first_seg = rest.substr(0, slash_pos);
 
             auto nit = std::lower_bound(snap->name_index.begin(), snap->name_index.end(), first_seg,
-                [](const auto& pair, std::string_view n) { return pair.first < n; });
+                                        [](const auto &pair, std::string_view n) { return pair.first < n; });
 
             if (nit != snap->name_index.end() && nit->first == first_seg) {
                 auto inner_path = rest.substr(slash_pos + 1);
                 auto hash = hash64(inner_path);
-                const auto& mp = *snap->mounts[nit->second];
-                auto* entry = mp.reader.find(hash);
+                const auto &mp = *snap->mounts[nit->second];
+                auto *entry = mp.reader.find(hash);
                 if (entry) {
                     auto dr = mp.reader.data_of(*entry);
                     if (dr) {
@@ -528,15 +540,14 @@ auto vfs::get_dynamic(std::string_view uri) const -> result<resource_view> {
     auto size = in.tellg();
     in.seekg(0);
     std::vector<std::byte> buf(static_cast<size_t>(size));
-    in.read(reinterpret_cast<char*>(buf.data()), size);
+    in.read(reinterpret_cast<char *>(buf.data()), size);
     if (!in) {
         return std::unexpected(error_code::io_error);
     }
     return resource_view(std::move(buf));
 }
 
-auto vfs::get_view(uint64_t semantic_hash) const
-    -> diagnostic_result<resource_view> {
+auto vfs::get_view(uint64_t semantic_hash) const -> diagnostic_result<resource_view> {
     auto snap = impl_->snapshot.load();
 
     auto idx = snap->index_hashes.find(semantic_hash);
@@ -544,7 +555,7 @@ auto vfs::get_view(uint64_t semantic_hash) const
         return std::unexpected(error{error_code::not_found, "resource not found"});
     }
 
-    const auto& re = snap->index_entries[idx];
+    const auto &re = snap->index_entries[idx];
     const size_t abs_end = static_cast<size_t>(re.data_offset) + re.data_size;
 
     if (!re.data_base_ptr || abs_end > re.buf_total_size) {
@@ -566,14 +577,13 @@ auto vfs::get_view(uint64_t semantic_hash) const
     return resource_view(std::move(*decompressed));
 }
 
-auto vfs::get_entry_info(uint64_t semantic_hash) const
-    -> result<entry_descriptor> {
+auto vfs::get_entry_info(uint64_t semantic_hash) const -> result<entry_descriptor> {
     auto snap = impl_->snapshot.load();
     auto idx = snap->index_hashes.find(semantic_hash);
     if (idx >= snap->index_hashes.size()) {
         return std::unexpected(error_code::not_found);
     }
-    const auto& re = snap->index_entries[idx];
+    const auto &re = snap->index_entries[idx];
     return entry_descriptor{
         .semantic_hash = semantic_hash,
         .data_offset = re.data_offset,
@@ -603,7 +613,7 @@ auto vfs::mount_names() const -> std::vector<std::string> {
     auto snap = impl_->snapshot.load();
     std::vector<std::string> names;
     names.reserve(snap->mounts.size());
-    for (const auto& m : snap->mounts) {
+    for (const auto &m : snap->mounts) {
         names.emplace_back(m->name);
     }
     return names;
@@ -618,7 +628,7 @@ auto vfs::mount_info() const -> std::vector<mount_point_info> {
     auto snap = impl_->snapshot.load();
     std::vector<mount_point_info> infos;
     infos.reserve(snap->mounts.size());
-    for (const auto& mp : snap->mounts) {
+    for (const auto &mp : snap->mounts) {
         mount_point_info info;
         info.name = mp->name;
         info.priority = mp->priority;
@@ -631,19 +641,15 @@ auto vfs::mount_info() const -> std::vector<mount_point_info> {
     return infos;
 }
 
-auto vfs::get_view_localized(
-    uint64_t base_hash,
-    std::string_view uri,
-    std::string_view current_locale,
-    std::span<const std::string> fallback_chain) const
-    -> diagnostic_result<resource_view> {
+auto vfs::get_view_localized(uint64_t base_hash, std::string_view uri, std::string_view current_locale,
+                             std::span<const std::string> fallback_chain) const -> diagnostic_result<resource_view> {
     if (!current_locale.empty()) {
         auto localized_hash = hash64_ns(current_locale, uri);
         auto r = get_view(localized_hash);
         if (r.has_value()) return r;
     }
 
-    for (const auto& locale : fallback_chain) {
+    for (const auto &locale : fallback_chain) {
         auto localized_hash = hash64_ns(locale, uri);
         auto r = get_view(localized_hash);
         if (r.has_value()) return r;
@@ -680,4 +686,4 @@ void vfs::reset_stats() noexcept {
 #endif
 }
 
-}  // namespace smoothie::resource
+} // namespace smoothie::resource

@@ -6,11 +6,11 @@
  */
 
 #if defined(_WIN32) || defined(_WIN64)
-#  if defined(SMOOTHIE_BUILD_INTERNAL)
-#    define SMOOTHIE_API __declspec(dllexport)
-#  else
-#    define SMOOTHIE_API __declspec(dllimport)
-#  endif
+#if defined(SMOOTHIE_BUILD_INTERNAL)
+#define SMOOTHIE_API __declspec(dllexport)
 #else
-#  define SMOOTHIE_API __attribute__((visibility("default")))
+#define SMOOTHIE_API __declspec(dllimport)
+#endif
+#else
+#define SMOOTHIE_API __attribute__((visibility("default")))
 #endif

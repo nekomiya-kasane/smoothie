@@ -3,6 +3,11 @@
 /// @file pak_writer.h
 /// @brief .lpak file writer: packs resources into the binary format with optional MPHF and compression.
 
+#include "smoothie/exports.h"
+#include "smoothie/resource/compression.h"
+#include "smoothie/resource/lpak_format.h"
+#include "smoothie/types.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
@@ -10,11 +15,6 @@
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "smoothie/exports.h"
-#include "smoothie/types.h"
-#include "smoothie/resource/lpak_format.h"
-#include "smoothie/resource/compression.h"
 
 namespace smoothie::resource {
 
@@ -26,27 +26,25 @@ namespace smoothie::resource {
 ///   w.add("core/fonts/roboto.ttf", resource_type::font, font_bytes);
 ///   auto r = w.write("output.lpak");
 class SMOOTHIE_API pak_writer {
-public:
+  public:
     pak_writer() = default;
 
     /// Add a resource entry. The data is copied into the internal buffer.
     void add(std::string_view path, resource_type type, std::span<const std::byte> data);
 
     /// Add a resource entry with per-entry compression mode.
-    void add(std::string_view path, resource_type type, std::span<const std::byte> data,
-            compression_mode compress);
+    void add(std::string_view path, resource_type type, std::span<const std::byte> data, compression_mode compress);
 
     /// Set the default compression mode for entries added without an explicit compression_mode.
     void set_default_compression(compression_mode mode) noexcept;
 
     /// Write the .lpak file to disk.
-    [[nodiscard]] auto write(const std::filesystem::path& output) const
-        -> diagnostic_result<void>;
+    [[nodiscard]] auto write(const std::filesystem::path &output) const -> diagnostic_result<void>;
 
     /// Return the number of entries added so far.
     [[nodiscard]] auto entry_count() const noexcept -> size_t;
 
-private:
+  private:
     struct pending_entry {
         std::string path;
         resource_type type;
@@ -64,4 +62,4 @@ private:
 #endif
 };
 
-}  // namespace smoothie::resource
+} // namespace smoothie::resource

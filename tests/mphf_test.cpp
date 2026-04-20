@@ -1,12 +1,11 @@
-#include <gtest/gtest.h>
+#include "smoothie/resource/hash.h"
+#include "smoothie/resource/mphf.h"
 
 #include <cstdint>
 #include <cstring>
+#include <gtest/gtest.h>
 #include <numeric>
 #include <vector>
-
-#include "smoothie/resource/mphf.h"
-#include "smoothie/resource/hash.h"
 
 using namespace smoothie::resource;
 
@@ -147,7 +146,7 @@ TEST(MphfSerialize, RoundTrip) {
     EXPECT_EQ(bytes.size(), sizeof(mphf_header) + 10 * sizeof(uint32_t));
 
     // Verify header
-    auto* hdr = reinterpret_cast<const mphf_header*>(bytes.data());
+    auto *hdr = reinterpret_cast<const mphf_header *>(bytes.data());
     EXPECT_EQ(hdr->magic, mphf_magic);
     EXPECT_EQ(hdr->bucket_count, 10u);
     EXPECT_EQ(hdr->entry_count, 10u);

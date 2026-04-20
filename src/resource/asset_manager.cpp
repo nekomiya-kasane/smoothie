@@ -4,7 +4,7 @@
 
 namespace smoothie::resource {
 
-asset_manager::asset_manager(vfs& filesystem, size_t max_cache_size)
+asset_manager::asset_manager(vfs &filesystem, size_t max_cache_size)
     : vfs_(filesystem), max_cache_size_(max_cache_size) {}
 
 void asset_manager::register_loader(uint32_t type_id, asset_loader loader) {
@@ -19,8 +19,7 @@ auto asset_manager::has_loader(uint32_t type_id) const noexcept -> bool {
     return loaders_.contains(type_id);
 }
 
-auto asset_manager::load(uint64_t semantic_hash, uint32_t type_id)
-    -> result<loaded_asset> {
+auto asset_manager::load(uint64_t semantic_hash, uint32_t type_id) -> result<loaded_asset> {
     // Check cache first
     if (max_cache_size_ > 0) {
         std::lock_guard lock(cache_mutex_);
@@ -34,7 +33,7 @@ auto asset_manager::load(uint64_t semantic_hash, uint32_t type_id)
     // Load dependencies first
     auto dit = deps_.find(semantic_hash);
     if (dit != deps_.end()) {
-        for (const auto& [dep_hash, dep_type] : dit->second) {
+        for (const auto &[dep_hash, dep_type] : dit->second) {
             auto dep_result = load(dep_hash, dep_type);
             if (!dep_result.has_value()) {
                 return std::unexpected(dep_result.error());
@@ -75,16 +74,12 @@ auto asset_manager::load(uint64_t semantic_hash, uint32_t type_id)
     return loaded;
 }
 
-auto asset_manager::load(uint64_t semantic_hash, std::string_view type_name)
-    -> result<loaded_asset> {
+auto asset_manager::load(uint64_t semantic_hash, std::string_view type_name) -> result<loaded_asset> {
     return load(semantic_hash, hash32(type_name));
 }
 
-auto asset_manager::load_async(uint64_t semantic_hash, uint32_t type_id)
-    -> std::future<result<loaded_asset>> {
-    return std::async(std::launch::async, [this, semantic_hash, type_id]() {
-        return load(semantic_hash, type_id);
-    });
+auto asset_manager::load_async(uint64_t semantic_hash, uint32_t type_id) -> std::future<result<loaded_asset>> {
+    return std::async(std::launch::async, [this, semantic_hash, type_id]() { return load(semantic_hash, type_id); });
 }
 
 void asset_manager::unload(uint64_t semantic_hash) {
@@ -115,8 +110,7 @@ void asset_manager::add_dependency(uint64_t dependent, uint64_t dependency, uint
     deps_[dependent].emplace_back(dependency, dep_type_id);
 }
 
-auto asset_manager::dependencies(uint64_t semantic_hash) const
-    -> std::vector<std::pair<uint64_t, uint32_t>> {
+auto asset_manager::dependencies(uint64_t semantic_hash) const -> std::vector<std::pair<uint64_t, uint32_t>> {
     auto it = deps_.find(semantic_hash);
     if (it != deps_.end()) {
         return it->second;
@@ -148,4 +142,4 @@ void asset_manager::touch_cache(uint64_t semantic_hash) {
     }
 }
 
-}  // namespace smoothie::resource
+} // namespace smoothie::resource

@@ -8,7 +8,7 @@ namespace smoothie {
 namespace {
 std::atomic<threading_policy> s_policy{default_threading};
 std::atomic<bool> s_policy_locked{false};
-}  // namespace
+} // namespace
 
 auto get_threading_policy() noexcept -> threading_policy {
     return s_policy.load(std::memory_order_acquire);
@@ -26,6 +26,6 @@ void lock_threading_policy() noexcept {
     s_policy_locked.store(true, std::memory_order_release);
 }
 
-}  // namespace detail
+} // namespace detail
 
-}  // namespace smoothie
+} // namespace smoothie

@@ -1,18 +1,17 @@
-#include <gtest/gtest.h>
+#include "smoothie/resource/compression.h"
+#include "smoothie/resource/hash.h"
+#include "smoothie/resource/pak_writer.h"
+#include "smoothie/resource/vfs.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <gtest/gtest.h>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "smoothie/resource/vfs.h"
-#include "smoothie/resource/pak_writer.h"
-#include "smoothie/resource/hash.h"
-#include "smoothie/resource/compression.h"
 
 using namespace smoothie::resource;
 
@@ -22,18 +21,18 @@ static auto to_bytes(std::string_view s) -> std::vector<std::byte> {
     return v;
 }
 
-static auto read_file_bytes(const std::filesystem::path& p) -> std::vector<std::byte> {
+static auto read_file_bytes(const std::filesystem::path &p) -> std::vector<std::byte> {
     std::ifstream f(p, std::ios::binary | std::ios::ate);
     if (!f) return {};
     auto sz = static_cast<size_t>(f.tellg());
     f.seekg(0);
     std::vector<std::byte> buf(sz);
-    f.read(reinterpret_cast<char*>(buf.data()), static_cast<std::streamsize>(sz));
+    f.read(reinterpret_cast<char *>(buf.data()), static_cast<std::streamsize>(sz));
     return buf;
 }
 
 class VfsFixture : public ::testing::Test {
-protected:
+  protected:
     std::filesystem::path pak1_path_, pak2_path_;
 
     void SetUp() override {
@@ -75,7 +74,7 @@ TEST_F(VfsFixture, MountAndGet) {
 
     auto data = v.get(hash64("textures/hero.png"));
     ASSERT_TRUE(data.has_value());
-    std::string_view sv(reinterpret_cast<const char*>(data->data()), data->size());
+    std::string_view sv(reinterpret_cast<const char *>(data->data()), data->size());
     EXPECT_EQ(sv, "HERO_IMG_DATA");
 }
 
@@ -109,7 +108,7 @@ TEST_F(VfsFixture, MountMmap) {
 
     auto data = v.get(hash64("textures/hero.png"));
     ASSERT_TRUE(data.has_value());
-    std::string_view sv(reinterpret_cast<const char*>(data->data()), data->size());
+    std::string_view sv(reinterpret_cast<const char *>(data->data()), data->size());
     EXPECT_EQ(sv, "HERO_IMG_DATA");
 }
 
@@ -147,7 +146,7 @@ TEST_F(VfsFixture, PriorityOverride) {
     // "shared/common.txt" exists in both; higher priority should win
     auto data = v.get(hash64("shared/common.txt"));
     ASSERT_TRUE(data.has_value());
-    std::string_view sv(reinterpret_cast<const char*>(data->data()), data->size());
+    std::string_view sv(reinterpret_cast<const char *>(data->data()), data->size());
     EXPECT_EQ(sv, "shared_from_pak2");
 }
 
@@ -181,7 +180,7 @@ TEST_F(VfsFixture, Enumerate) {
     vfs v;
     v.mount("core", pak1_path_);
     auto hashes = v.enumerate();
-    EXPECT_EQ(hashes.size(), 3u);  // 3 entries in pak1
+    EXPECT_EQ(hashes.size(), 3u); // 3 entries in pak1
 }
 
 TEST_F(VfsFixture, MountInfo) {

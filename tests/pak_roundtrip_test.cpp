@@ -1,19 +1,18 @@
-#include <gtest/gtest.h>
+#include "smoothie/resource/compression.h"
+#include "smoothie/resource/hash.h"
+#include "smoothie/resource/lpak_format.h"
+#include "smoothie/resource/pak_reader.h"
+#include "smoothie/resource/pak_writer.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <gtest/gtest.h>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "smoothie/resource/pak_writer.h"
-#include "smoothie/resource/pak_reader.h"
-#include "smoothie/resource/hash.h"
-#include "smoothie/resource/compression.h"
-#include "smoothie/resource/lpak_format.h"
 
 using namespace smoothie::resource;
 
@@ -25,26 +24,22 @@ static auto to_bytes(std::string_view s) -> std::vector<std::byte> {
 }
 
 // Helper: read file into byte vector
-static auto read_file_bytes(const std::filesystem::path& p) -> std::vector<std::byte> {
+static auto read_file_bytes(const std::filesystem::path &p) -> std::vector<std::byte> {
     std::ifstream f(p, std::ios::binary | std::ios::ate);
     if (!f) return {};
     auto sz = static_cast<size_t>(f.tellg());
     f.seekg(0);
     std::vector<std::byte> buf(sz);
-    f.read(reinterpret_cast<char*>(buf.data()), static_cast<std::streamsize>(sz));
+    f.read(reinterpret_cast<char *>(buf.data()), static_cast<std::streamsize>(sz));
     return buf;
 }
 
 class PakRoundtripFixture : public ::testing::Test {
-protected:
+  protected:
     std::filesystem::path tmp_path_;
 
-    void SetUp() override {
-        tmp_path_ = std::filesystem::temp_directory_path() / "smoothie_test.lpak";
-    }
-    void TearDown() override {
-        std::filesystem::remove(tmp_path_);
-    }
+    void SetUp() override { tmp_path_ = std::filesystem::temp_directory_path() / "smoothie_test.lpak"; }
+    void TearDown() override { std::filesystem::remove(tmp_path_); }
 };
 
 TEST_F(PakRoundtripFixture, WriteAndOpenUncompressed) {
@@ -184,7 +179,7 @@ TEST_F(PakRoundtripFixture, IterateEntries) {
     ASSERT_TRUE(reader.has_value());
 
     size_t count = 0;
-    for (const auto& e : *reader) {
+    for (const auto &e : *reader) {
         (void)e;
         ++count;
     }
@@ -201,7 +196,7 @@ TEST_F(PakRoundtripFixture, HeaderAccess) {
     auto reader = pak_reader::open(buf);
     ASSERT_TRUE(reader.has_value());
 
-    auto* hdr = reader->header();
+    auto *hdr = reader->header();
     ASSERT_NE(hdr, nullptr);
     EXPECT_EQ(hdr->entry_count, 1u);
     EXPECT_EQ(std::memcmp(hdr->magic, "LPAK", 4), 0);

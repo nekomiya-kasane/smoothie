@@ -3,6 +3,12 @@
 /// @file vfs.h
 /// @brief Virtual File System for mounting .lpak packages and resource lookup.
 
+#include "smoothie/exports.h"
+#include "smoothie/resource/lpak_format.h"
+#include "smoothie/resource/pak_reader.h"
+#include "smoothie/stats.h"
+#include "smoothie/types.h"
+
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
@@ -12,12 +18,6 @@
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "smoothie/exports.h"
-#include "smoothie/types.h"
-#include "smoothie/stats.h"
-#include "smoothie/resource/lpak_format.h"
-#include "smoothie/resource/pak_reader.h"
 
 namespace smoothie::resource {
 
@@ -37,17 +37,17 @@ struct mount_point_info {
 /// when resources have the same semantic hash. After mount/unmount, the unified index is
 /// automatically rebuilt.
 class SMOOTHIE_API vfs {
-public:
+  public:
     vfs();
     ~vfs();
 
-    vfs(vfs&&) noexcept;
-    vfs& operator=(vfs&&) noexcept;
-    vfs(const vfs&) = delete;
-    vfs& operator=(const vfs&) = delete;
+    vfs(vfs &&) noexcept;
+    vfs &operator=(vfs &&) noexcept;
+    vfs(const vfs &) = delete;
+    vfs &operator=(const vfs &) = delete;
 
     /// Mount a .lpak file. The file is read into memory and parsed.
-    [[nodiscard]] auto mount(std::string_view name, const std::filesystem::path& path, int priority = 0)
+    [[nodiscard]] auto mount(std::string_view name, const std::filesystem::path &path, int priority = 0)
         -> diagnostic_result<void>;
 
     /// Mount from an in-memory buffer (takes ownership).
@@ -59,7 +59,7 @@ public:
         -> diagnostic_result<void>;
 
     /// Mount via memory-mapped file (zero-copy).
-    [[nodiscard]] auto mount_mmap(std::string_view name, const std::filesystem::path& path, int priority = 0)
+    [[nodiscard]] auto mount_mmap(std::string_view name, const std::filesystem::path &path, int priority = 0)
         -> diagnostic_result<void>;
 
     /// Unmount a previously mounted package by name.
@@ -69,33 +69,26 @@ public:
     void rebuild_index();
 
     /// O(log N) lookup by semantic hash.
-    [[nodiscard]] auto get(uint64_t semantic_hash) const
-        -> result<std::span<const std::byte>>;
+    [[nodiscard]] auto get(uint64_t semantic_hash) const -> result<std::span<const std::byte>>;
 
     /// Strong-typed lookup (compile-time ID).
-    template <typename TAssetId>
-    [[nodiscard]] auto get() const -> result<std::span<const std::byte>> {
+    template <typename TAssetId> [[nodiscard]] auto get() const -> result<std::span<const std::byte>> {
         return get(TAssetId::id);
     }
 
     /// Dynamic URI lookup.
-    [[nodiscard]] auto get_dynamic(std::string_view uri) const
-        -> result<resource_view>;
+    [[nodiscard]] auto get_dynamic(std::string_view uri) const -> result<resource_view>;
 
     /// Locale-aware lookup.
-    [[nodiscard]] auto get_localized(uint64_t base_hash,
-                                     std::string_view uri,
-                                     std::string_view current_locale,
+    [[nodiscard]] auto get_localized(uint64_t base_hash, std::string_view uri, std::string_view current_locale,
                                      std::span<const std::string> fallback_chain) const
         -> result<std::span<const std::byte>>;
 
     /// Get resource data with transparent decompression.
-    [[nodiscard]] auto get_view(uint64_t semantic_hash) const
-        -> diagnostic_result<resource_view>;
+    [[nodiscard]] auto get_view(uint64_t semantic_hash) const -> diagnostic_result<resource_view>;
 
     /// Get entry metadata without fetching data.
-    [[nodiscard]] auto get_entry_info(uint64_t semantic_hash) const
-        -> result<entry_descriptor>;
+    [[nodiscard]] auto get_entry_info(uint64_t semantic_hash) const -> result<entry_descriptor>;
 
     /// Check if a resource exists.
     [[nodiscard]] auto contains(uint64_t semantic_hash) const noexcept -> bool;
@@ -116,11 +109,8 @@ public:
     [[nodiscard]] auto mount_info() const -> std::vector<mount_point_info>;
 
     /// Locale-aware lookup with transparent decompression.
-    [[nodiscard]] auto get_view_localized(
-        uint64_t base_hash,
-        std::string_view uri,
-        std::string_view current_locale,
-        std::span<const std::string> fallback_chain) const
+    [[nodiscard]] auto get_view_localized(uint64_t base_hash, std::string_view uri, std::string_view current_locale,
+                                          std::span<const std::string> fallback_chain) const
         -> diagnostic_result<resource_view>;
 
     /// Register a callback invoked when a mounted .lpak file changes on disk.
@@ -138,7 +128,7 @@ public:
     /// Reset all performance counters to zero.
     void reset_stats() noexcept;
 
-private:
+  private:
     struct vfs_snapshot;
     struct impl;
 #if defined(_MSC_VER)
@@ -151,4 +141,4 @@ private:
 #endif
 };
 
-}  // namespace smoothie::resource
+} // namespace smoothie::resource

@@ -1,11 +1,12 @@
-#include "smoothie/smoothie.h"
 #include "smoothie/types.h"
+
+#include "smoothie/smoothie.h"
 
 namespace smoothie {
 
 // ── Version ─────────────────────────────────────────────────────────────
 
-const char* version_string() noexcept {
+const char *version_string() noexcept {
     return "0.1.0";
 }
 
@@ -18,9 +19,8 @@ int version_int() noexcept {
 resource_view::resource_view(std::span<const std::byte> borrowed) noexcept
     : storage_(borrowed), cached_data_(borrowed) {}
 
-resource_view::resource_view(std::vector<std::byte> owned) noexcept
-    : storage_(std::move(owned)) {
-    auto& v = std::get<std::vector<std::byte>>(storage_);
+resource_view::resource_view(std::vector<std::byte> owned) noexcept : storage_(std::move(owned)) {
+    auto &v = std::get<std::vector<std::byte>>(storage_);
     cached_data_ = {v.data(), v.size()};
 }
 
@@ -41,7 +41,7 @@ auto resource_view::is_owned() const noexcept -> bool {
 }
 
 auto resource_view::as_string_view() const noexcept -> std::string_view {
-    return {reinterpret_cast<const char*>(cached_data_.data()), cached_data_.size()};
+    return {reinterpret_cast<const char *>(cached_data_.data()), cached_data_.size()};
 }
 
 auto resource_view::as_string() const -> std::string {
@@ -58,33 +58,30 @@ auto resource_view::subspan(size_t offset, size_t count) const -> std::span<cons
     return cached_data_.subspan(offset, count);
 }
 
-resource_view::resource_view(const resource_view& other)
-    : storage_(other.is_owned()
-                   ? decltype(storage_)(std::get<std::vector<std::byte>>(other.storage_))
-                   : decltype(storage_)(std::get<std::span<const std::byte>>(other.storage_)))
-    , cached_data_([this]() noexcept {
-          if (auto* v = std::get_if<std::vector<std::byte>>(&storage_)) {
+resource_view::resource_view(const resource_view &other)
+    : storage_(other.is_owned() ? decltype(storage_)(std::get<std::vector<std::byte>>(other.storage_))
+                                : decltype(storage_)(std::get<std::span<const std::byte>>(other.storage_))),
+      cached_data_([this]() noexcept {
+          if (auto *v = std::get_if<std::vector<std::byte>>(&storage_)) {
               return std::span<const std::byte>{v->data(), v->size()};
           }
           return std::get<std::span<const std::byte>>(storage_);
       }()) {}
 
-resource_view& resource_view::operator=(const resource_view& other) {
+resource_view &resource_view::operator=(const resource_view &other) {
     if (this != &other) {
         if (other.is_owned()) {
             storage_ = std::get<std::vector<std::byte>>(other.storage_);
-        }
-        else {
+        } else {
             storage_ = std::get<std::span<const std::byte>>(other.storage_);
         }
-        if (auto* v = std::get_if<std::vector<std::byte>>(&storage_)) {
+        if (auto *v = std::get_if<std::vector<std::byte>>(&storage_)) {
             cached_data_ = {v->data(), v->size()};
-        }
-        else {
+        } else {
             cached_data_ = std::get<std::span<const std::byte>>(storage_);
         }
     }
     return *this;
 }
 
-}  // namespace smoothie
+} // namespace smoothie

@@ -1,16 +1,15 @@
-#include <gtest/gtest.h>
+#include "smoothie/resource/hash.h"
+#include "smoothie/resource/lpak_format.h"
+#include "smoothie/types.h"
 
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <format>
+#include <gtest/gtest.h>
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "smoothie/types.h"
-#include "smoothie/resource/lpak_format.h"
-#include "smoothie/resource/hash.h"
 
 using namespace smoothie;
 using namespace smoothie::resource;
@@ -41,8 +40,7 @@ TEST(Types, ErrorCodeFormatter) {
 
 TEST(ResourceView, BorrowedView) {
     std::string data = "hello borrowed view";
-    auto sp = std::span<const std::byte>(
-        reinterpret_cast<const std::byte*>(data.data()), data.size());
+    auto sp = std::span<const std::byte>(reinterpret_cast<const std::byte *>(data.data()), data.size());
     resource_view rv(sp);
 
     EXPECT_FALSE(rv.empty());
@@ -80,13 +78,12 @@ TEST(ResourceView, EmptyOwned) {
 
 TEST(ResourceView, Subspan) {
     std::string data = "0123456789";
-    auto sp = std::span<const std::byte>(
-        reinterpret_cast<const std::byte*>(data.data()), data.size());
+    auto sp = std::span<const std::byte>(reinterpret_cast<const std::byte *>(data.data()), data.size());
     resource_view rv(sp);
 
     auto sub = rv.subspan(3, 4);
     EXPECT_EQ(sub.size(), 4u);
-    std::string_view sub_sv(reinterpret_cast<const char*>(sub.data()), sub.size());
+    std::string_view sub_sv(reinterpret_cast<const char *>(sub.data()), sub.size());
     EXPECT_EQ(sub_sv, "3456");
 }
 
@@ -103,8 +100,7 @@ TEST(ResourceView, MoveConstruct) {
 
 TEST(ResourceView, CopyBorrowed) {
     std::string data = "borrow copy";
-    auto sp = std::span<const std::byte>(
-        reinterpret_cast<const std::byte*>(data.data()), data.size());
+    auto sp = std::span<const std::byte>(reinterpret_cast<const std::byte *>(data.data()), data.size());
     resource_view rv1(sp);
 
     resource_view rv2(rv1);

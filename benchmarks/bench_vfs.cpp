@@ -1,9 +1,8 @@
-#include <benchmark/benchmark.h>
-
 #include "smoothie/resource/hash.h"
 #include "smoothie/resource/pak_writer.h"
 #include "smoothie/resource/vfs.h"
 
+#include <benchmark/benchmark.h>
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
@@ -24,8 +23,7 @@ auto bench_tmp_dir() -> fs::path {
 
 auto make_bytes(std::string_view s) -> std::vector<std::byte> {
     std::vector<std::byte> v(s.size());
-    for (size_t i = 0; i < s.size(); ++i)
-        v[i] = static_cast<std::byte>(s[i]);
+    for (size_t i = 0; i < s.size(); ++i) v[i] = static_cast<std::byte>(s[i]);
     return v;
 }
 
@@ -55,19 +53,19 @@ struct vfs_fixture {
     }
 };
 
-auto& get_vfs_fixture(int n) {
+auto &get_vfs_fixture(int n) {
     static std::unique_ptr<vfs_fixture> f100, f1k, f10k;
-    auto& ptr = (n <= 100) ? f100 : (n <= 1000) ? f1k : f10k;
+    auto &ptr = (n <= 100) ? f100 : (n <= 1000) ? f1k : f10k;
     if (!ptr) ptr = std::make_unique<vfs_fixture>(n);
     return *ptr;
 }
 
-}  // namespace
+} // namespace
 
 // ── VFS get(hash) latency ────────────────────────────────────────────────
 
-static void BM_vfs_get(benchmark::State& state) {
-    auto& fix = get_vfs_fixture(static_cast<int>(state.range(0)));
+static void BM_vfs_get(benchmark::State &state) {
+    auto &fix = get_vfs_fixture(static_cast<int>(state.range(0)));
     size_t idx = 0;
     for (auto _ : state) {
         benchmark::DoNotOptimize(fix.filesystem.get(fix.hashes[idx]));
@@ -79,8 +77,8 @@ BENCHMARK(BM_vfs_get)->Arg(100)->Arg(1000)->Arg(10000);
 
 // ── VFS get_dynamic(uri) latency ─────────────────────────────────────────
 
-static void BM_vfs_get_dynamic(benchmark::State& state) {
-    auto& fix = get_vfs_fixture(1000);
+static void BM_vfs_get_dynamic(benchmark::State &state) {
+    auto &fix = get_vfs_fixture(1000);
     size_t idx = 0;
     for (auto _ : state) {
         benchmark::DoNotOptimize(fix.filesystem.get_dynamic(fix.uris[idx % 100]));
@@ -92,8 +90,8 @@ BENCHMARK(BM_vfs_get_dynamic);
 
 // ── VFS contains() ───────────────────────────────────────────────────────
 
-static void BM_vfs_contains(benchmark::State& state) {
-    auto& fix = get_vfs_fixture(1000);
+static void BM_vfs_contains(benchmark::State &state) {
+    auto &fix = get_vfs_fixture(1000);
     size_t idx = 0;
     for (auto _ : state) {
         benchmark::DoNotOptimize(fix.filesystem.contains(fix.hashes[idx]));
@@ -105,8 +103,8 @@ BENCHMARK(BM_vfs_contains);
 
 // ── Bulk VFS lookup throughput ───────────────────────────────────────────
 
-static void BM_bulk_vfs_get(benchmark::State& state) {
-    auto& fix = get_vfs_fixture(static_cast<int>(state.range(0)));
+static void BM_bulk_vfs_get(benchmark::State &state) {
+    auto &fix = get_vfs_fixture(static_cast<int>(state.range(0)));
     for (auto _ : state) {
         int found = 0;
         for (const auto h : fix.hashes) {
@@ -120,7 +118,7 @@ BENCHMARK(BM_bulk_vfs_get)->Arg(1000)->Arg(10000);
 
 // ── VFS mount latency ────────────────────────────────────────────────────
 
-static void BM_vfs_mount(benchmark::State& state) {
+static void BM_vfs_mount(benchmark::State &state) {
     auto dir = bench_tmp_dir();
     auto pak_path = dir / "bench_mount.lpak";
     {

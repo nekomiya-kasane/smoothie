@@ -15,9 +15,9 @@ namespace smoothie::resource {
 namespace detail {
 
 inline constexpr uint64_t fnv1a_offset_basis = 14695981039346656037ULL;
-inline constexpr uint64_t fnv1a_prime        = 1099511628211ULL;
+inline constexpr uint64_t fnv1a_prime = 1099511628211ULL;
 
-}  // namespace detail
+} // namespace detail
 
 /// Compile-time FNV-1a 64-bit hash of a string.
 [[nodiscard]] constexpr auto hash64(std::string_view s) noexcept -> uint64_t {
@@ -67,7 +67,7 @@ inline constexpr uint64_t fnv1a_prime        = 1099511628211ULL;
 
 /// User-defined literal for compile-time FNV-1a 64-bit hash.
 /// Usage: auto h = "path/to/resource"_h64;
-[[nodiscard]] consteval auto operator""_h64(const char* s, size_t len) noexcept -> uint64_t {
+[[nodiscard]] consteval auto operator""_h64(const char *s, size_t len) noexcept -> uint64_t {
     uint64_t h = detail::fnv1a_offset_basis;
     for (size_t i = 0; i < len; ++i) {
         h ^= static_cast<uint64_t>(static_cast<unsigned char>(s[i]));
@@ -76,4 +76,4 @@ inline constexpr uint64_t fnv1a_prime        = 1099511628211ULL;
     return h;
 }
 
-}  // namespace smoothie::resource
+} // namespace smoothie::resource
