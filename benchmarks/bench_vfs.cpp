@@ -23,7 +23,9 @@ auto bench_tmp_dir() -> fs::path {
 
 auto make_bytes(std::string_view s) -> std::vector<std::byte> {
     std::vector<std::byte> v(s.size());
-    for (size_t i = 0; i < s.size(); ++i) v[i] = static_cast<std::byte>(s[i]);
+    for (size_t i = 0; i < s.size(); ++i) {
+        v[i] = static_cast<std::byte>(s[i]);
+    }
     return v;
 }
 
@@ -47,16 +49,22 @@ struct vfs_fixture {
             uris.push_back("res://" + name);
         }
         auto r = writer.write(pak_path);
-        if (!r) throw std::runtime_error("pak_writer::write failed");
+        if (!r) {
+            throw std::runtime_error("pak_writer::write failed");
+        }
         auto mr = filesystem.mount("bench", pak_path);
-        if (!mr) throw std::runtime_error("vfs::mount failed");
+        if (!mr) {
+            throw std::runtime_error("vfs::mount failed");
+        }
     }
 };
 
 auto &get_vfs_fixture(int n) {
     static std::unique_ptr<vfs_fixture> f100, f1k, f10k;
     auto &ptr = (n <= 100) ? f100 : (n <= 1000) ? f1k : f10k;
-    if (!ptr) ptr = std::make_unique<vfs_fixture>(n);
+    if (!ptr) {
+        ptr = std::make_unique<vfs_fixture>(n);
+    }
     return *ptr;
 }
 
@@ -108,7 +116,9 @@ static void BM_bulk_vfs_get(benchmark::State &state) {
     for (auto _ : state) {
         int found = 0;
         for (const auto h : fix.hashes) {
-            if (fix.filesystem.get(h).has_value()) ++found;
+            if (fix.filesystem.get(h).has_value()) {
+                ++found;
+            }
         }
         benchmark::DoNotOptimize(found);
     }
@@ -128,7 +138,9 @@ static void BM_vfs_mount(benchmark::State &state) {
             writer.add(name, resource_type::raw, make_bytes("data"));
         }
         auto r = writer.write(pak_path);
-        if (!r) throw std::runtime_error("write failed");
+        if (!r) {
+            throw std::runtime_error("write failed");
+        }
     }
 
     for (auto _ : state) {

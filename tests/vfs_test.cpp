@@ -23,7 +23,9 @@ static auto to_bytes(std::string_view s) -> std::vector<std::byte> {
 
 static auto read_file_bytes(const std::filesystem::path &p) -> std::vector<std::byte> {
     std::ifstream f(p, std::ios::binary | std::ios::ate);
-    if (!f) return {};
+    if (!f) {
+        return {};
+    }
     auto sz = static_cast<size_t>(f.tellg());
     f.seekg(0);
     std::vector<std::byte> buf(sz);

@@ -152,7 +152,9 @@ auto pak_reader::data_of_view(const entry_descriptor &entry) const -> diagnostic
 }
 
 auto pak_reader::validate_index_checksum() const noexcept -> bool {
-    if (!header_ || index_.empty()) return true;
+    if (!header_ || index_.empty()) {
+        return true;
+    }
     auto index_bytes = std::span<const std::byte>(reinterpret_cast<const std::byte *>(index_.data()),
                                                   index_.size() * sizeof(entry_descriptor));
     return hash64(index_bytes) == header_->index_checksum;

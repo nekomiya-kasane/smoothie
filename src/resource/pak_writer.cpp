@@ -114,7 +114,9 @@ auto pak_writer::write(const std::filesystem::path &output) const -> diagnostic_
 
     std::vector<uint64_t> sorted_keys;
     sorted_keys.reserve(index.size());
-    for (const auto &ed : index) sorted_keys.push_back(ed.semantic_hash);
+    for (const auto &ed : index) {
+        sorted_keys.push_back(ed.semantic_hash);
+    }
 
     auto mphf_seeds = mphf_build(sorted_keys);
     std::vector<std::byte> mphf_blob;

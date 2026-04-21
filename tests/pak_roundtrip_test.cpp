@@ -26,7 +26,9 @@ static auto to_bytes(std::string_view s) -> std::vector<std::byte> {
 // Helper: read file into byte vector
 static auto read_file_bytes(const std::filesystem::path &p) -> std::vector<std::byte> {
     std::ifstream f(p, std::ios::binary | std::ios::ate);
-    if (!f) return {};
+    if (!f) {
+        return {};
+    }
     auto sz = static_cast<size_t>(f.tellg());
     f.seekg(0);
     std::vector<std::byte> buf(sz);
@@ -108,7 +110,9 @@ TEST_F(PakRoundtripFixture, DataOfRawBytes) {
 TEST_F(PakRoundtripFixture, DataOfViewDecompressesTransparently) {
     // Use highly compressible data so LZ4 output is smaller than input
     std::string repeated;
-    for (int i = 0; i < 200; ++i) repeated += "ABCDEFGH";
+    for (int i = 0; i < 200; ++i) {
+        repeated += "ABCDEFGH";
+    }
     auto content = to_bytes(repeated);
 
     pak_writer w;
@@ -133,7 +137,9 @@ TEST_F(PakRoundtripFixture, DataOfViewDecompressesTransparently) {
 TEST_F(PakRoundtripFixture, ZstdCompressedRoundTrip) {
     // Use highly compressible data so Zstd output is smaller than input
     std::string repeated;
-    for (int i = 0; i < 200; ++i) repeated += "ZSTDTEST";
+    for (int i = 0; i < 200; ++i) {
+        repeated += "ZSTDTEST";
+    }
     auto content = to_bytes(repeated);
     pak_writer w;
     w.add("data/zstd.bin", resource_type::raw, content, compression_mode::zstd);

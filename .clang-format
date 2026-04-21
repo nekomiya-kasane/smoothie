@@ -8,8 +8,10 @@ TabWidth: 4
 UseTab: Never
 ColumnLimit: 120
 BreakBeforeBraces: Attach
+InsertBraces: true
 AllowShortFunctionsOnASingleLine: Inline
-AllowShortIfStatementsOnASingleLine: WithoutElse
-AllowShortLoopsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
 SortIncludes: CaseSensitive
 IncludeBlocks: Regroup

@@ -91,9 +91,13 @@ uint32_t smoothie_api_version(void) {
 // ═════════════════════════════════════════════════════════════════════
 
 smoothie_error_code smoothie_vfs_create(smoothie_vfs **out_vfs) {
-    if (!out_vfs) return SMOOTHIE_ERROR_NULL_POINTER;
+    if (!out_vfs) {
+        return SMOOTHIE_ERROR_NULL_POINTER;
+    }
     auto *v = new (std::nothrow) smoothie_vfs;
-    if (!v) return SMOOTHIE_ERROR_IO;
+    if (!v) {
+        return SMOOTHIE_ERROR_IO;
+    }
     *out_vfs = v;
     return SMOOTHIE_OK;
 }
@@ -103,52 +107,76 @@ void smoothie_vfs_destroy(smoothie_vfs *vfs) {
 }
 
 smoothie_error_code smoothie_vfs_mount(smoothie_vfs *vfs, const char *name, const char *path, int priority) {
-    if (!vfs || !name || !path) return SMOOTHIE_ERROR_NULL_POINTER;
+    if (!vfs || !name || !path) {
+        return SMOOTHIE_ERROR_NULL_POINTER;
+    }
     auto r = vfs->inner.mount(name, std::filesystem::path(path), priority);
-    if (!r.has_value()) return map_diagnostic_error(r.error());
+    if (!r.has_value()) {
+        return map_diagnostic_error(r.error());
+    }
     return SMOOTHIE_OK;
 }
 
 smoothie_error_code smoothie_vfs_mount_memory(smoothie_vfs *vfs, const char *name, const void *data, size_t data_size,
                                               int priority) {
-    if (!vfs || !name) return SMOOTHIE_ERROR_NULL_POINTER;
-    if (!data && data_size > 0) return SMOOTHIE_ERROR_NULL_POINTER;
+    if (!vfs || !name) {
+        return SMOOTHIE_ERROR_NULL_POINTER;
+    }
+    if (!data && data_size > 0) {
+        return SMOOTHIE_ERROR_NULL_POINTER;
+    }
     auto bytes =
         std::vector<std::byte>(static_cast<const std::byte *>(data), static_cast<const std::byte *>(data) + data_size);
     auto r = vfs->inner.mount(name, std::move(bytes), priority);
-    if (!r.has_value()) return map_diagnostic_error(r.error());
+    if (!r.has_value()) {
+        return map_diagnostic_error(r.error());
+    }
     return SMOOTHIE_OK;
 }
 
 smoothie_error_code smoothie_vfs_unmount(smoothie_vfs *vfs, const char *name) {
-    if (!vfs || !name) return SMOOTHIE_ERROR_NULL_POINTER;
+    if (!vfs || !name) {
+        return SMOOTHIE_ERROR_NULL_POINTER;
+    }
     auto r = vfs->inner.unmount(name);
-    if (!r.has_value()) return map_diagnostic_error(r.error());
+    if (!r.has_value()) {
+        return map_diagnostic_error(r.error());
+    }
     return SMOOTHIE_OK;
 }
 
 smoothie_error_code smoothie_vfs_get(const smoothie_vfs *vfs, uint64_t semantic_hash, const void **out_data,
                                      size_t *out_size) {
-    if (!vfs || !out_data || !out_size) return SMOOTHIE_ERROR_NULL_POINTER;
+    if (!vfs || !out_data || !out_size) {
+        return SMOOTHIE_ERROR_NULL_POINTER;
+    }
     auto r = vfs->inner.get(semantic_hash);
-    if (!r.has_value()) return map_error(r.error());
+    if (!r.has_value()) {
+        return map_error(r.error());
+    }
     *out_data = r->data();
     *out_size = r->size();
     return SMOOTHIE_OK;
 }
 
 int smoothie_vfs_contains(const smoothie_vfs *vfs, uint64_t semantic_hash) {
-    if (!vfs) return 0;
+    if (!vfs) {
+        return 0;
+    }
     return vfs->inner.contains(semantic_hash) ? 1 : 0;
 }
 
 size_t smoothie_vfs_mount_count(const smoothie_vfs *vfs) {
-    if (!vfs) return 0;
+    if (!vfs) {
+        return 0;
+    }
     return vfs->inner.mount_count();
 }
 
 size_t smoothie_vfs_resource_count(const smoothie_vfs *vfs) {
-    if (!vfs) return 0;
+    if (!vfs) {
+        return 0;
+    }
     return vfs->inner.resource_count();
 }
 
@@ -157,9 +185,13 @@ size_t smoothie_vfs_resource_count(const smoothie_vfs *vfs) {
 // ═════════════════════════════════════════════════════════════════════
 
 smoothie_error_code smoothie_pak_writer_create(smoothie_pak_writer **out_writer) {
-    if (!out_writer) return SMOOTHIE_ERROR_NULL_POINTER;
+    if (!out_writer) {
+        return SMOOTHIE_ERROR_NULL_POINTER;
+    }
     auto *w = new (std::nothrow) smoothie_pak_writer;
-    if (!w) return SMOOTHIE_ERROR_IO;
+    if (!w) {
+        return SMOOTHIE_ERROR_IO;
+    }
     *out_writer = w;
     return SMOOTHIE_OK;
 }
@@ -170,27 +202,39 @@ void smoothie_pak_writer_destroy(smoothie_pak_writer *writer) {
 
 smoothie_error_code smoothie_pak_writer_add(smoothie_pak_writer *writer, const char *path, smoothie_resource_type type,
                                             const void *data, size_t data_size) {
-    if (!writer || !path) return SMOOTHIE_ERROR_NULL_POINTER;
-    if (!data && data_size > 0) return SMOOTHIE_ERROR_NULL_POINTER;
+    if (!writer || !path) {
+        return SMOOTHIE_ERROR_NULL_POINTER;
+    }
+    if (!data && data_size > 0) {
+        return SMOOTHIE_ERROR_NULL_POINTER;
+    }
     auto span = std::span<const std::byte>(static_cast<const std::byte *>(data), data_size);
     writer->inner.add(path, static_cast<smoothie::resource::resource_type>(type), span);
     return SMOOTHIE_OK;
 }
 
 void smoothie_pak_writer_set_compression(smoothie_pak_writer *writer, smoothie_compression_mode mode) {
-    if (!writer) return;
+    if (!writer) {
+        return;
+    }
     writer->inner.set_default_compression(static_cast<smoothie::resource::compression_mode>(mode));
 }
 
 smoothie_error_code smoothie_pak_writer_write(const smoothie_pak_writer *writer, const char *output_path) {
-    if (!writer || !output_path) return SMOOTHIE_ERROR_NULL_POINTER;
+    if (!writer || !output_path) {
+        return SMOOTHIE_ERROR_NULL_POINTER;
+    }
     auto r = writer->inner.write(std::filesystem::path(output_path));
-    if (!r.has_value()) return map_diagnostic_error(r.error());
+    if (!r.has_value()) {
+        return map_diagnostic_error(r.error());
+    }
     return SMOOTHIE_OK;
 }
 
 size_t smoothie_pak_writer_entry_count(const smoothie_pak_writer *writer) {
-    if (!writer) return 0;
+    if (!writer) {
+        return 0;
+    }
     return writer->inner.entry_count();
 }
 
@@ -199,7 +243,9 @@ size_t smoothie_pak_writer_entry_count(const smoothie_pak_writer *writer) {
 // ═════════════════════════════════════════════════════════════════════
 
 uint64_t smoothie_hash64(const char *str, size_t len) {
-    if (!str) return 0;
+    if (!str) {
+        return 0;
+    }
     return smoothie::resource::hash64(std::string_view(str, len));
 }
 

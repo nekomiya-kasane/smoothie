@@ -62,7 +62,9 @@ TEST(EytzingerArray, LargeArray) {
     eytzinger_array<uint64_t> ea;
     constexpr size_t N = 10000;
     std::vector<uint64_t> sorted(N);
-    for (size_t i = 0; i < N; ++i) sorted[i] = i * 3 + 7;
+    for (size_t i = 0; i < N; ++i) {
+        sorted[i] = i * 3 + 7;
+    }
     ea.build(sorted);
 
     EXPECT_EQ(ea.size(), N);

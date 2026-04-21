@@ -127,7 +127,9 @@ auto asset_manager::loader_count() const noexcept -> size_t {
 }
 
 void asset_manager::evict_lru() {
-    if (lru_order_.empty()) return;
+    if (lru_order_.empty()) {
+        return;
+    }
     auto oldest = lru_order_.back();
     lru_order_.pop_back();
     cache_.erase(oldest);

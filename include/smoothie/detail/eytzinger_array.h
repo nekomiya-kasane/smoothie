@@ -24,7 +24,9 @@ template <typename T> class eytzinger_array {
         const auto n = sorted.size();
         data_.resize(n);
         sorted_index_.resize(n);
-        if (n == 0) return;
+        if (n == 0) {
+            return;
+        }
 
         // Iterative in-order traversal using explicit stack.
         // Each frame: (eytz_idx, lo, hi, phase).
@@ -78,8 +80,9 @@ template <typename T> class eytzinger_array {
     /// The unconditional descent to a leaf avoids all data-dependent branches.
     [[nodiscard]] auto find(T key) const noexcept -> size_t {
         const auto n = data_.size();
-        if (n == 0) [[unlikely]]
+        if (n == 0) [[unlikely]] {
             return n;
+        }
 
         // Branchless descent: unconditionally walk to a leaf.
         // 'candidate' tracks the last node where data_[i] == key.
@@ -94,7 +97,9 @@ template <typename T> class eytzinger_array {
             __builtin_prefetch(data_.data() + 2 * i + 1, 0, 3);
 #endif
             // Record match without branching on it
-            if (data_[i] == key) candidate = i;
+            if (data_[i] == key) {
+                candidate = i;
+            }
             // Branchless child selection: left = 2i+1, right = 2i+2
             i = 2 * i + 1 + static_cast<size_t>(data_[i] < key);
         }
@@ -116,7 +121,9 @@ template <typename T> class eytzinger_array {
 
   private:
     auto build_recursive(std::span<const T> sorted, size_t eytz_idx, size_t lo, size_t hi) -> size_t {
-        if (eytz_idx >= sorted.size() || lo >= hi) return lo;
+        if (eytz_idx >= sorted.size() || lo >= hi) {
+            return lo;
+        }
         lo = build_recursive(sorted, 2 * eytz_idx + 1, lo, hi);
         data_[eytz_idx] = sorted[lo];
         sorted_index_[eytz_idx] = lo;

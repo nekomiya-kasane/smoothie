@@ -195,8 +195,12 @@ struct resolved_entry {
 };
 
 static auto mount_data(const mount_point &mp) noexcept -> std::span<const std::byte> {
-    if (mp.is_mmap) return mp.mmap_data->span();
-    if (mp.is_embedded) return mp.embedded_data;
+    if (mp.is_mmap) {
+        return mp.mmap_data->span();
+    }
+    if (mp.is_embedded) {
+        return mp.embedded_data;
+    }
     return std::span<const std::byte>(mp.owned_data);
 }
 
@@ -249,7 +253,9 @@ struct vfs::vfs_snapshot {
         }
 
         std::sort(all.begin(), all.end(), [](const candidate &a, const candidate &b) {
-            if (a.hash != b.hash) return a.hash < b.hash;
+            if (a.hash != b.hash) {
+                return a.hash < b.hash;
+            }
             return a.priority > b.priority;
         });
 
@@ -470,13 +476,17 @@ auto vfs::get_localized(uint64_t base_hash, std::string_view uri, std::string_vi
     if (!current_locale.empty()) {
         auto localized_hash = hash64_ns(current_locale, uri);
         auto r = get(localized_hash);
-        if (r.has_value()) return r;
+        if (r.has_value()) {
+            return r;
+        }
     }
 
     for (const auto &locale : fallback_chain) {
         auto localized_hash = hash64_ns(locale, uri);
         auto r = get(localized_hash);
-        if (r.has_value()) return r;
+        if (r.has_value()) {
+            return r;
+        }
     }
 
     return get(base_hash);
@@ -646,13 +656,17 @@ auto vfs::get_view_localized(uint64_t base_hash, std::string_view uri, std::stri
     if (!current_locale.empty()) {
         auto localized_hash = hash64_ns(current_locale, uri);
         auto r = get_view(localized_hash);
-        if (r.has_value()) return r;
+        if (r.has_value()) {
+            return r;
+        }
     }
 
     for (const auto &locale : fallback_chain) {
         auto localized_hash = hash64_ns(locale, uri);
         auto r = get_view(localized_hash);
-        if (r.has_value()) return r;
+        if (r.has_value()) {
+            return r;
+        }
     }
 
     return get_view(base_hash);

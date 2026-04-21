@@ -22,7 +22,9 @@ static auto to_bytes(std::string_view s) -> std::vector<std::byte> {
 // Helper: make a repeating byte pattern (compressible)
 static auto make_compressible(size_t size) -> std::vector<std::byte> {
     std::vector<std::byte> v(size);
-    for (size_t i = 0; i < size; ++i) v[i] = static_cast<std::byte>(i % 64);
+    for (size_t i = 0; i < size; ++i) {
+        v[i] = static_cast<std::byte>(i % 64);
+    }
     return v;
 }
 

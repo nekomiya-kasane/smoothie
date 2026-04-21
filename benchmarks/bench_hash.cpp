@@ -29,7 +29,9 @@ BENCHMARK(BM_hash64_medium);
 
 static void BM_hash64_long(benchmark::State &state) {
     std::string key(512, 'x');
-    for (size_t i = 0; i < 512; ++i) key[i] = static_cast<char>('a' + (i % 26));
+    for (size_t i = 0; i < 512; ++i) {
+        key[i] = static_cast<char>('a' + (i % 26));
+    }
     for (auto _ : state) {
         benchmark::DoNotOptimize(hash64(key));
     }
@@ -55,7 +57,9 @@ static void BM_hash64_batch(benchmark::State &state) {
     }
     for (auto _ : state) {
         uint64_t sum = 0;
-        for (const auto &k : keys) sum += hash64(k);
+        for (const auto &k : keys) {
+            sum += hash64(k);
+        }
         benchmark::DoNotOptimize(sum);
     }
     state.SetItemsProcessed(state.iterations() * n);
