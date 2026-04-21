@@ -116,12 +116,12 @@ namespace smoothie {
 
       private:
 #if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4251)
+#    pragma warning(push)
+#    pragma warning(disable : 4251)
 #endif
         std::variant<std::span<const std::byte>, std::vector<std::byte>> storage_;
 #if defined(_MSC_VER)
-#pragma warning(pop)
+#    pragma warning(pop)
 #endif
         std::span<const std::byte> cached_data_;
     };

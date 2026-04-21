@@ -25,19 +25,19 @@
 /* ── Export / calling convention ───────────────────────────────────── */
 
 #if defined(SMOOTHIE_BUILD_INTERNAL)
-#if defined(_MSC_VER)
-#define SMOOTHIE_CAPI __declspec(dllexport)
-#elif defined(__GNUC__) || defined(__clang__)
-#define SMOOTHIE_CAPI __attribute__((visibility("default")))
+#    if defined(_MSC_VER)
+#        define SMOOTHIE_CAPI __declspec(dllexport)
+#    elif defined(__GNUC__) || defined(__clang__)
+#        define SMOOTHIE_CAPI __attribute__((visibility("default")))
+#    else
+#        define SMOOTHIE_CAPI
+#    endif
 #else
-#define SMOOTHIE_CAPI
-#endif
-#else
-#if defined(_MSC_VER)
-#define SMOOTHIE_CAPI __declspec(dllimport)
-#else
-#define SMOOTHIE_CAPI
-#endif
+#    if defined(_MSC_VER)
+#        define SMOOTHIE_CAPI __declspec(dllimport)
+#    else
+#        define SMOOTHIE_CAPI
+#    endif
 #endif
 
 #ifdef __cplusplus

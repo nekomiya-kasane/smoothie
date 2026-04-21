@@ -53,12 +53,12 @@ namespace smoothie::resource {
         };
         compression_mode default_compress_ = compression_mode::none;
 #if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4251)
+#    pragma warning(push)
+#    pragma warning(disable : 4251)
 #endif
         std::vector<pending_entry> entries_;
 #if defined(_MSC_VER)
-#pragma warning(pop)
+#    pragma warning(pop)
 #endif
     };
 

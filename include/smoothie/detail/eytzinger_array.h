@@ -9,7 +9,7 @@
 #include <vector>
 
 #if defined(_MSC_VER)
-#include <intrin.h>
+#    include <intrin.h>
 #endif
 
 namespace smoothie::detail {

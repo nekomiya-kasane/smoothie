@@ -10,6 +10,7 @@ ColumnLimit: 120
 BreakBeforeBraces: Attach
 InsertBraces: true
 NamespaceIndentation: All
+IndentPPDirectives: AfterHash
 AllowShortFunctionsOnASingleLine: Inline
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false

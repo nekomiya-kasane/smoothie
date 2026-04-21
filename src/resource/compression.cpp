@@ -3,9 +3,9 @@
 #include <format>
 
 #if defined(SMOOTHIE_HAS_COMPRESSION)
-#include <lz4.h>
-#include <lz4hc.h>
-#include <zstd.h>
+#    include <lz4.h>
+#    include <lz4hc.h>
+#    include <zstd.h>
 #endif
 
 namespace smoothie::resource {

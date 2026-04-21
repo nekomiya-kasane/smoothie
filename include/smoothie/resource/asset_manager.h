@@ -91,8 +91,8 @@ namespace smoothie::resource {
         void touch_cache(uint64_t semantic_hash);
 
 #if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4251)
+#    pragma warning(push)
+#    pragma warning(disable : 4251)
 #endif
         vfs &vfs_;
         std::map<uint32_t, asset_loader> loaders_;
@@ -110,7 +110,7 @@ namespace smoothie::resource {
 
         on_loaded_callback on_loaded_;
 #if defined(_MSC_VER)
-#pragma warning(pop)
+#    pragma warning(pop)
 #endif
     };
 

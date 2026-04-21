@@ -13,11 +13,11 @@ namespace smoothie {
     // ── Conditional compilation macros ──────────────────────────────────
 
 #ifdef SMOOTHIE_ENABLE_STATS
-#define SMOOTHIE_STAT_INC(counter) (++(counter))
-#define SMOOTHIE_STAT_ADD(counter, n) ((counter) += (n))
+#    define SMOOTHIE_STAT_INC(counter) (++(counter))
+#    define SMOOTHIE_STAT_ADD(counter, n) ((counter) += (n))
 #else
-#define SMOOTHIE_STAT_INC(counter) ((void)0)
-#define SMOOTHIE_STAT_ADD(counter, n) ((void)0)
+#    define SMOOTHIE_STAT_INC(counter) ((void)0)
+#    define SMOOTHIE_STAT_ADD(counter, n) ((void)0)
 #endif
 
     // ── VFS performance counters ────────────────────────────────────────

@@ -53,8 +53,8 @@ namespace smoothie::resource {
 
       private:
 #if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4251)
+#    pragma warning(push)
+#    pragma warning(disable : 4251)
 #endif
         std::span<const std::byte> buffer_;
         const file_header *header_ = nullptr;
@@ -65,7 +65,7 @@ namespace smoothie::resource {
         std::span<const uint32_t> mphf_seeds_;
 #endif
 #if defined(_MSC_VER)
-#pragma warning(pop)
+#    pragma warning(pop)
 #endif
     };
 
