@@ -8,10 +8,10 @@
 
 namespace smoothie {
 
-/// Returns the library version as a string (e.g. "0.1.0").
-[[nodiscard]] SMOOTHIE_API const char *version_string() noexcept;
+    /// Returns the library version as a string (e.g. "0.1.0").
+    [[nodiscard]] SMOOTHIE_API const char *version_string() noexcept;
 
-/// Returns the library version as an integer (major * 10000 + minor * 100 + patch).
-[[nodiscard]] SMOOTHIE_API int version_int() noexcept;
+    /// Returns the library version as an integer (major * 10000 + minor * 100 + patch).
+    [[nodiscard]] SMOOTHIE_API int version_int() noexcept;
 
 } // namespace smoothie

@@ -15,60 +15,60 @@ namespace fs = std::filesystem;
 
 namespace {
 
-auto bench_tmp_dir() -> fs::path {
-    auto p = fs::temp_directory_path() / "smoothie_bench";
-    fs::create_directories(p);
-    return p;
-}
-
-auto make_bytes(std::string_view s) -> std::vector<std::byte> {
-    std::vector<std::byte> v(s.size());
-    for (size_t i = 0; i < s.size(); ++i) {
-        v[i] = static_cast<std::byte>(s[i]);
+    auto bench_tmp_dir() -> fs::path {
+        auto p = fs::temp_directory_path() / "smoothie_bench";
+        fs::create_directories(p);
+        return p;
     }
-    return v;
-}
 
-auto read_file_bytes(const fs::path &p) -> std::vector<std::byte> {
-    std::ifstream f(p, std::ios::binary | std::ios::ate);
-    auto sz = f.tellg();
-    f.seekg(0);
-    std::vector<std::byte> buf(static_cast<size_t>(sz));
-    f.read(reinterpret_cast<char *>(buf.data()), sz);
-    return buf;
-}
-
-struct pak_fixture {
-    std::vector<std::byte> file_bytes;
-    std::vector<uint64_t> hashes;
-
-    explicit pak_fixture(int n) {
-        auto dir = bench_tmp_dir();
-        auto pak_path = dir / ("bench_pak_" + std::to_string(n) + ".lpak");
-
-        pak_writer writer;
-        hashes.reserve(static_cast<size_t>(n));
-        for (int i = 0; i < n; ++i) {
-            auto name = "entry_" + std::to_string(i) + ".bin";
-            writer.add(name, resource_type::raw, make_bytes("d"));
-            hashes.push_back(hash64(name));
+    auto make_bytes(std::string_view s) -> std::vector<std::byte> {
+        std::vector<std::byte> v(s.size());
+        for (size_t i = 0; i < s.size(); ++i) {
+            v[i] = static_cast<std::byte>(s[i]);
         }
-        auto wr = writer.write(pak_path);
-        if (!wr) {
-            throw std::runtime_error("write failed");
-        }
-        file_bytes = read_file_bytes(pak_path);
+        return v;
     }
-};
 
-auto &get_pak_fixture(int n) {
-    static std::unique_ptr<pak_fixture> f100, f1k, f10k;
-    auto &ptr = (n <= 100) ? f100 : (n <= 1000) ? f1k : f10k;
-    if (!ptr) {
-        ptr = std::make_unique<pak_fixture>(n);
+    auto read_file_bytes(const fs::path &p) -> std::vector<std::byte> {
+        std::ifstream f(p, std::ios::binary | std::ios::ate);
+        auto sz = f.tellg();
+        f.seekg(0);
+        std::vector<std::byte> buf(static_cast<size_t>(sz));
+        f.read(reinterpret_cast<char *>(buf.data()), sz);
+        return buf;
     }
-    return *ptr;
-}
+
+    struct pak_fixture {
+        std::vector<std::byte> file_bytes;
+        std::vector<uint64_t> hashes;
+
+        explicit pak_fixture(int n) {
+            auto dir = bench_tmp_dir();
+            auto pak_path = dir / ("bench_pak_" + std::to_string(n) + ".lpak");
+
+            pak_writer writer;
+            hashes.reserve(static_cast<size_t>(n));
+            for (int i = 0; i < n; ++i) {
+                auto name = "entry_" + std::to_string(i) + ".bin";
+                writer.add(name, resource_type::raw, make_bytes("d"));
+                hashes.push_back(hash64(name));
+            }
+            auto wr = writer.write(pak_path);
+            if (!wr) {
+                throw std::runtime_error("write failed");
+            }
+            file_bytes = read_file_bytes(pak_path);
+        }
+    };
+
+    auto &get_pak_fixture(int n) {
+        static std::unique_ptr<pak_fixture> f100, f1k, f10k;
+        auto &ptr = (n <= 100) ? f100 : (n <= 1000) ? f1k : f10k;
+        if (!ptr) {
+            ptr = std::make_unique<pak_fixture>(n);
+        }
+        return *ptr;
+    }
 
 } // namespace
 

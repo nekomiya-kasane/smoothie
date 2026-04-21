@@ -10,23 +10,23 @@ using namespace smoothie::resource;
 
 namespace {
 
-std::vector<std::byte> make_compressible(size_t size) {
-    std::vector<std::byte> v(size);
-    for (size_t i = 0; i < size; ++i) {
-        v[i] = static_cast<std::byte>(i % 13);
+    std::vector<std::byte> make_compressible(size_t size) {
+        std::vector<std::byte> v(size);
+        for (size_t i = 0; i < size; ++i) {
+            v[i] = static_cast<std::byte>(i % 13);
+        }
+        return v;
     }
-    return v;
-}
 
-std::vector<std::byte> make_random_ish(size_t size) {
-    std::vector<std::byte> v(size);
-    uint32_t state = 0xDEADBEEF;
-    for (size_t i = 0; i < size; ++i) {
-        state = state * 1664525u + 1013904223u;
-        v[i] = static_cast<std::byte>(state >> 24);
+    std::vector<std::byte> make_random_ish(size_t size) {
+        std::vector<std::byte> v(size);
+        uint32_t state = 0xDEADBEEF;
+        for (size_t i = 0; i < size; ++i) {
+            state = state * 1664525u + 1013904223u;
+            v[i] = static_cast<std::byte>(state >> 24);
+        }
+        return v;
     }
-    return v;
-}
 
 } // namespace
 

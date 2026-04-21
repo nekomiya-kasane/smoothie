@@ -16,34 +16,34 @@
 
 namespace {
 
-smoothie_error_code map_error(smoothie::error_code ec) {
-    switch (ec) {
-    case smoothie::error_code::ok:
-        return SMOOTHIE_OK;
-    case smoothie::error_code::not_found:
-        return SMOOTHIE_ERROR_NOT_FOUND;
-    case smoothie::error_code::corrupted:
-        return SMOOTHIE_ERROR_CORRUPTED;
-    case smoothie::error_code::mmap_failed:
-        return SMOOTHIE_ERROR_MMAP_FAILED;
-    case smoothie::error_code::version_mismatch:
-        return SMOOTHIE_ERROR_VERSION_MISMATCH;
-    case smoothie::error_code::already_mounted:
-        return SMOOTHIE_ERROR_ALREADY_MOUNTED;
-    case smoothie::error_code::not_mounted:
-        return SMOOTHIE_ERROR_NOT_MOUNTED;
-    case smoothie::error_code::io_error:
-        return SMOOTHIE_ERROR_IO;
-    case smoothie::error_code::invalid_argument:
-        return SMOOTHIE_ERROR_INVALID_ARGUMENT;
-    default:
-        return SMOOTHIE_ERROR_CORRUPTED;
+    smoothie_error_code map_error(smoothie::error_code ec) {
+        switch (ec) {
+        case smoothie::error_code::ok:
+            return SMOOTHIE_OK;
+        case smoothie::error_code::not_found:
+            return SMOOTHIE_ERROR_NOT_FOUND;
+        case smoothie::error_code::corrupted:
+            return SMOOTHIE_ERROR_CORRUPTED;
+        case smoothie::error_code::mmap_failed:
+            return SMOOTHIE_ERROR_MMAP_FAILED;
+        case smoothie::error_code::version_mismatch:
+            return SMOOTHIE_ERROR_VERSION_MISMATCH;
+        case smoothie::error_code::already_mounted:
+            return SMOOTHIE_ERROR_ALREADY_MOUNTED;
+        case smoothie::error_code::not_mounted:
+            return SMOOTHIE_ERROR_NOT_MOUNTED;
+        case smoothie::error_code::io_error:
+            return SMOOTHIE_ERROR_IO;
+        case smoothie::error_code::invalid_argument:
+            return SMOOTHIE_ERROR_INVALID_ARGUMENT;
+        default:
+            return SMOOTHIE_ERROR_CORRUPTED;
+        }
     }
-}
 
-smoothie_error_code map_diagnostic_error(const smoothie::error &e) {
-    return map_error(e.code);
-}
+    smoothie_error_code map_diagnostic_error(const smoothie::error &e) {
+        return map_error(e.code);
+    }
 
 } // namespace
 
